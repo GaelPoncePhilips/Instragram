@@ -1,104 +1,180 @@
--- 1. Catálogo de Tarifas (HU4)
-CREATE TABLE tarifas (
-    id SERIAL PRIMARY KEY,
-    categoria VARCHAR(20) NOT NULL UNIQUE CHECK (categoria IN ('economico', 'confort', 'premium')),
-    precio_base NUMERIC(10, 2) NOT NULL CHECK (precio_base > 0),
-    precio_por_km NUMERIC(10, 2) NOT NULL CHECK (precio_por_km > 0)
+-- =====================================================================
+-- Instagram — esquema de base de datos (PostgreSQL)
+-- Los nombres de entidades y columnas siguen la consigna (instagram.md).
+-- Lo marcado como EXTRA no está en la consigna y no contradice nada.
+-- Documentación: docs/MODELO_DATOS.md
+-- =====================================================================
+
+-- ---------------------------------------------------------------------
+-- ENTIDADES DE LA CONSIGNA
+-- ---------------------------------------------------------------------
+
+-- HU1
+CREATE TABLE Usuario (
+    id             SERIAL PRIMARY KEY,
+    username       VARCHAR(30)  NOT NULL UNIQUE CHECK (username),
+    email          VARCHAR(100) NOT NULL UNIQUE,
+    password_hash  VARCHAR(255) NOT NULL,                 -- EXTRA: para login
+    nombre         VARCHAR(100) NOT NULL,
+    bio            VARCHAR(255),
+    es_privada     BOOLEAN   NOT NULL DEFAULT FALSE,
+    fecha_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Pasajeros (HU1)
-CREATE TABLE pasajeros (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    telefono VARCHAR(20) NOT NULL
+-- HU2
+CREATE TABLE Post (
+    id                SERIAL PRIMARY KEY,
+    usuario_id        INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    url_imagen        VARCHAR NOT NULL,
+    descripcion       VARCHAR(2200),
+    fecha_publicacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_post_usuario_fecha ON Post (usuario_id, fecha_publicacion DESC);
+
+-- HU5
+CREATE TABLE Comentario (
+    id         SERIAL PRIMARY KEY,
+    post_id    INT NOT NULL REFERENCES Post(id)    ON DELETE CASCADE,
+    usuario_id INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    texto      VARCHAR(300) NOT NULL CHECK (length(trim(texto)) > 0),
+    fecha      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_comentario_post ON Comentario (post_id, fecha);
+
+-- HU7
+CREATE TABLE Story (
+    id                  SERIAL PRIMARY KEY,
+    usuario_id          INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    url_imagen          VARCHAR NOT NULL,
+    solo_mejores_amigos BOOLEAN   NOT NULL DEFAULT FALSE,
+    fecha_publicacion   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_vencimiento   TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL '24 hours'),
+    CHECK (fecha_vencimiento > fecha_publicacion),
+    UNIQUE (id, usuario_id)                               -- para FK compuesta de destacada_story
+);
+CREATE INDEX idx_story_usuario_venc ON Story (usuario_id, fecha_vencimiento);
+
+-- HU2 / HU11
+CREATE TABLE Hashtag (
+    id     SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE CHECK (nombre = lower(nombre))
 );
 
--- 3. Conductores (HU1)
-CREATE TABLE conductores (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    licencia VARCHAR(50) NOT NULL UNIQUE,
-    calificacion_promedio NUMERIC(3, 2) DEFAULT 0 CHECK (calificacion_promedio >= 0 AND calificacion_promedio <= 5),
-    disponible BOOLEAN DEFAULT TRUE
+-- HU10
+CREATE TABLE Bloqueo (
+    id            SERIAL PRIMARY KEY,
+    bloqueador_id INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    bloqueado_id  INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    fecha         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (bloqueador_id, bloqueado_id),
+    CHECK (bloqueador_id <> bloqueado_id)
 );
 
--- 4. Vehículos (HU2)
-CREATE TABLE vehiculos (
-    id SERIAL PRIMARY KEY,
-    conductor_id INTEGER NOT NULL REFERENCES conductores(id),
-    patente VARCHAR(20) NOT NULL UNIQUE,
-    modelo VARCHAR(50) NOT NULL,
-    anio INTEGER NOT NULL,
-    categoria VARCHAR(20) NOT NULL CHECK (categoria IN ('economico', 'confort', 'premium'))
+-- ---------------------------------------------------------------------
+-- RELACIONES N A M DE LA CONSIGNA
+-- ---------------------------------------------------------------------
+
+-- HU3 / HU4
+CREATE TABLE seguidores (
+    seguidor_id INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    seguido_id  INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    estado      VARCHAR(10) NOT NULL CHECK (estado IN ('pendiente', 'aceptado')),
+    fecha       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (seguidor_id, seguido_id),
+    CHECK (seguidor_id <> seguido_id)
+);
+CREATE INDEX idx_seguidores_seguido ON seguidores (seguido_id, estado);
+
+-- HU5
+CREATE TABLE likes (
+    usuario_id INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    post_id    INT NOT NULL REFERENCES Post(id)    ON DELETE CASCADE,
+    fecha      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (usuario_id, post_id)
+);
+CREATE INDEX idx_likes_post ON likes (post_id);
+
+-- HU2 / HU11
+CREATE TABLE hashtags_post (
+    post_id    INT NOT NULL REFERENCES Post(id)    ON DELETE CASCADE,
+    hashtag_id INT NOT NULL REFERENCES Hashtag(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, hashtag_id)
+);
+CREATE INDEX idx_hashtags_post_hashtag ON hashtags_post (hashtag_id);
+
+-- HU9
+CREATE TABLE vistas_story (
+    usuario_id INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    story_id   INT NOT NULL REFERENCES Story(id)   ON DELETE CASCADE,
+    fecha      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (usuario_id, story_id)
 );
 
--- 5. Métodos de Pago (HU3)
-CREATE TABLE metodos_pago (
-    id SERIAL PRIMARY KEY,
-    pasajero_id INTEGER NOT NULL REFERENCES pasajeros(id),
-    tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('tarjeta_credito', 'tarjeta_debito', 'efectivo', 'billetera_virtual')),
-    ultimos_digitos CHAR(4) -- Solo para tarjetas, puede ser NULL en efectivo
+-- HU8
+CREATE TABLE mejores_amigos (
+    usuario_id INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    amigo_id   INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    PRIMARY KEY (usuario_id, amigo_id),
+    CHECK (usuario_id <> amigo_id)
 );
 
--- 6. Cupones (HU13)
-CREATE TABLE cupones (
-    id SERIAL PRIMARY KEY,
-    codigo VARCHAR(20) NOT NULL UNIQUE,
-    porcentaje_descuento INTEGER NOT NULL CHECK (porcentaje_descuento BETWEEN 1 AND 100),
-    fecha_vencimiento DATE NOT NULL
+-- ---------------------------------------------------------------------
+-- EXTRA: DESTACADAS ORDENABLES
+-- ---------------------------------------------------------------------
+
+CREATE TABLE Destacada (
+    id             SERIAL PRIMARY KEY,
+    usuario_id     INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    titulo         VARCHAR(50) NOT NULL,
+    portada_url    VARCHAR,                               -- NULL = primera story visible
+    orden          INT NOT NULL DEFAULT 0,
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (id, usuario_id),
+    UNIQUE (usuario_id, orden) DEFERRABLE INITIALLY DEFERRED
 );
 
--- 7. Multiplicador Horario (HU11)
-CREATE TABLE multiplicadores_horario (
-    id SERIAL PRIMARY KEY,
-    dia_semana INTEGER NOT NULL CHECK (dia_semana BETWEEN 0 AND 6), -- 0=Domingo, 6=Sábado
-    hora_desde TIME NOT NULL,
-    hora_hasta TIME NOT NULL,
-    factor NUMERIC(3, 2) NOT NULL CHECK (factor > 1),
-    CONSTRAINT check_horario_valido CHECK (hora_desde < hora_hasta)
+-- usuario_id repetido a propósito: las FK compuestas garantizan que la
+-- destacada y la story pertenecen al mismo usuario.
+CREATE TABLE destacada_story (
+    destacada_id INT NOT NULL,
+    story_id     INT NOT NULL,
+    usuario_id   INT NOT NULL,
+    orden        INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (destacada_id, story_id),
+    FOREIGN KEY (destacada_id, usuario_id) REFERENCES Destacada(id, usuario_id) ON DELETE CASCADE,
+    FOREIGN KEY (story_id, usuario_id)     REFERENCES Story(id, usuario_id)     ON DELETE CASCADE,
+    UNIQUE (destacada_id, orden) DEFERRABLE INITIALLY DEFERRED
 );
 
--- 8. Viajes (HU5, HU6, HU7, HU11, HU13)
-CREATE TABLE viajes (
-    id SERIAL PRIMARY KEY,
-    pasajero_id INTEGER NOT NULL REFERENCES pasajeros(id),
-    conductor_id INTEGER REFERENCES conductores(id), -- NULL inicialmente (HU5)
-    vehiculo_id INTEGER REFERENCES vehiculos(id),
-    metodo_pago_id INTEGER NOT NULL REFERENCES metodos_pago(id),
-    cupon_id INTEGER REFERENCES cupones(id),
-    origen TEXT NOT NULL,
-    destino TEXT NOT NULL,
-    distancia_km NUMERIC(10, 2) NOT NULL CHECK (distancia_km > 0),
-    fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_inicio TIMESTAMP,
-    fecha_fin TIMESTAMP,
-    estado VARCHAR(20) DEFAULT 'pendiente' 
-        CHECK (estado IN ('pendiente', 'asignado', 'en_curso', 'finalizado', 'cancelado', 'sin_conductor')),
-    tarifa_final NUMERIC(10, 2) NOT NULL, -- Se guarda el cálculo final (HU5)
-    multiplicador_aplicado NUMERIC(3, 2) DEFAULT 1.0
+-- ---------------------------------------------------------------------
+-- EXTRA: ÁLBUMES COMPARTIDOS
+-- ---------------------------------------------------------------------
+
+CREATE TABLE Album (
+    id             SERIAL PRIMARY KEY,
+    creador_id     INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    titulo         VARCHAR(60) NOT NULL,
+    descripcion    VARCHAR(255),
+    portada_url    VARCHAR,                               -- NULL = primer item del álbum
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 9. Calificaciones (HU8)
-CREATE TABLE calificaciones (
-    id SERIAL PRIMARY KEY,
-    viaje_id INTEGER NOT NULL UNIQUE REFERENCES viajes(id),
-    puntaje_pasajero INTEGER CHECK (puntaje_pasajero BETWEEN 1 AND 5),
-    puntaje_conductor INTEGER CHECK (puntaje_conductor BETWEEN 1 AND 5),
-    comentario TEXT
+CREATE TABLE album_miembro (
+    album_id   INT NOT NULL REFERENCES Album(id)   ON DELETE CASCADE,
+    usuario_id INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    rol        VARCHAR(10) NOT NULL DEFAULT 'miembro'   CHECK (rol IN ('admin', 'miembro')),
+    estado     VARCHAR(10) NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'aceptado')),
+    fecha      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (album_id, usuario_id)
 );
+CREATE INDEX idx_album_miembro_usuario ON album_miembro (usuario_id, estado);
 
--- 10. Cargos / Penalidades (HU12)
-CREATE TABLE cargos (
-    id SERIAL PRIMARY KEY,
-    viaje_id INTEGER NOT NULL REFERENCES viajes(id),
-    monto NUMERIC(10, 2) NOT NULL,
-    motivo VARCHAR(100) DEFAULT 'Penalidad por cancelación tardía'
+CREATE TABLE album_item (
+    id          SERIAL PRIMARY KEY,
+    album_id    INT NOT NULL REFERENCES Album(id)   ON DELETE CASCADE,
+    usuario_id  INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
+    url_imagen  VARCHAR NOT NULL,
+    descripcion VARCHAR(500),
+    fecha       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
--- 11. Tabla pivote para uso de cupones (HU13 - Para que no se repita por pasajero)
-CREATE TABLE cupones_usados (
-    pasajero_id INTEGER REFERENCES pasajeros(id),
-    cupon_id INTEGER REFERENCES cupones(id),
-    PRIMARY KEY (pasajero_id, cupon_id)
-);
+CREATE INDEX idx_album_item_album_fecha ON album_item (album_id, fecha DESC);
