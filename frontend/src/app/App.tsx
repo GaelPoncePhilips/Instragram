@@ -28,14 +28,14 @@ import { AppLayout } from './layout/AppLayout'
 function RequireAuth() {
   const estado = useSession((s) => s.estado)
   const location = useLocation()
-  if (estado === 'iniciando') return <CenteredLoader className="min-h-dvh items-center" />
+  if (estado === 'iniciando') return <CenteredLoader className="min-h-svh items-center" />
   if (estado === 'anonimo') return <Navigate to="/login" replace state={{ from: location.pathname }} />
   return <Outlet />
 }
 
 function OnlyAnon() {
   const estado = useSession((s) => s.estado)
-  if (estado === 'iniciando') return <CenteredLoader className="min-h-dvh items-center" />
+  if (estado === 'iniciando') return <CenteredLoader className="min-h-svh items-center" />
   if (estado === 'autenticado') return <Navigate to="/" replace />
   return <Outlet />
 }

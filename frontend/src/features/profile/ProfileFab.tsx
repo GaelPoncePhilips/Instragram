@@ -46,7 +46,7 @@ export function ProfileFab({ tab }: { tab: ProfileTab }) {
       onClick={() => navigate(a.to)}
       aria-label={a.label}
       className={cn(
-        'state ripple anim-fab-item fixed right-4 z-20 flex h-14 items-center overflow-hidden rounded-lg bg-primary-container text-on-primary-container shadow-lg',
+        'barra-fija state ripple anim-fab-item fixed right-4 z-20 flex h-14 items-center overflow-hidden rounded-lg bg-primary-container text-on-primary-container shadow-lg',
         'bottom-[calc(var(--nav-h)+env(safe-area-inset-bottom)+16px)] md:right-8 md:bottom-8',
         'transition-[border-radius,padding,gap] spring-spatial-fast active:rounded-xl',
         extendido ? 'gap-3 pr-5 pl-4' : 'gap-0 px-4',

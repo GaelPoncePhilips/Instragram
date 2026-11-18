@@ -61,7 +61,7 @@ export function CreateAlbumPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-var(--nav-h))] w-full max-w-[560px] flex-col md:min-h-dvh md:py-6">
+    <div className="mx-auto flex min-h-[calc(100svh-var(--nav-h))] w-full max-w-[560px] flex-col md:min-h-svh md:py-6">
       <ScreenHeader title="Nuevo álbum compartido" onBack={atras} />
       {/* Progreso segmentado (sin números de paso) */}
       <div className="flex gap-1.5 px-4 pt-4" role="progressbar" aria-valuemin={1} aria-valuemax={4} aria-valuenow={paso + 1} aria-label="Progreso">

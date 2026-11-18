@@ -63,12 +63,12 @@ export function AppLayout() {
   const colapsada = panel !== null || pathname.startsWith('/direct')
 
   return (
-    <div className="min-h-dvh bg-surface">
+    <div className="min-h-svh bg-surface">
       <SideNav />
       <SidePanel />
       <main
         className={cn(
-          'min-h-dvh md:pl-[var(--sidebar-w-collapsed)]',
+          'min-h-svh md:pl-[var(--sidebar-w-collapsed)]',
           !colapsada && 'lg:pl-[var(--sidebar-w)]',
           !sinBarraInferior && 'pb-[calc(var(--nav-h)+env(safe-area-inset-bottom))] md:pb-0',
         )}

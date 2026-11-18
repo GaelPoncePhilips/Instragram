@@ -83,10 +83,25 @@ body {
   font-optical-sizing: auto;
   -webkit-tap-highlight-color: transparent;
 }
+html {
+  /* Sin "rebote" elástico arriba/abajo: en móvil arrastraba las barras fijas. */
+  overscroll-behavior-y: none;
+}
 body {
   margin: 0;
-  min-height: 100dvh;
-  overflow-x: hidden;
+  /* svh = alto con la barra del navegador visible: no cambia mientras se esconde al hacer scroll
+     (dvh sí, y forzaba un re-layout por cuadro que hacía saltar la barra inferior). */
+  min-height: 100svh;
+  /* clip en vez de hidden: hidden convierte al body en contenedor de scroll y en iOS/Android
+     las barras position: fixed tiemblan o se desplazan durante el scroll. */
+  overflow-x: clip;
+  overscroll-behavior-y: none;
+}
+/* Barras fijas en su propia capa de composición: no se repintan con el contenido al scrollear. */
+.barra-fija {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 button {
   cursor: pointer;

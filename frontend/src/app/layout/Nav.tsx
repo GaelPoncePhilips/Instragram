@@ -37,7 +37,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-outline-variant bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="barra-fija fixed inset-x-0 bottom-0 z-30 border-t border-outline-variant bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className="flex h-[var(--nav-h)] items-stretch justify-around">
         {MOBILE_TABS.map((id) => {
