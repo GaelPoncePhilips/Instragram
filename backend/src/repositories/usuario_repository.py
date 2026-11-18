@@ -1,4 +1,4 @@
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, text
 from sqlalchemy.orm import Session
 
 from src.db.models.bloqueo_model import Bloqueo
@@ -56,3 +56,34 @@ class UsuarioRepository:
             (Bloqueo.bloqueador_id == a_id) & (Bloqueo.bloqueado_id == b_id),
             (Bloqueo.bloqueador_id == b_id) & (Bloqueo.bloqueado_id == a_id),
         )).first() is not None
+
+    def estadisticas(self, usuario_id: int, desde, hasta) -> dict:
+        """HU12. El rango filtra por fecha del post (promedio y top post) y por fecha del like (top seguidor)."""
+        p = {"uid": usuario_id, "desde": desde, "hasta": hasta}
+        rango_post = ("(CAST(:desde AS timestamp) IS NULL OR p.fecha_publicacion >= :desde) AND "
+                      "(CAST(:hasta AS timestamp) IS NULL OR p.fecha_publicacion < :hasta)")
+        likes_validos = ("NOT EXISTS (SELECT 1 FROM bloqueo b WHERE b.bloqueador_id = p.usuario_id "
+                         "AND b.bloqueado_id = l.usuario_id)")
+        por_post = f"""SELECT p.id, p.url_imagen, p.fecha_publicacion,
+                         count(l.usuario_id) FILTER (WHERE {likes_validos}) AS likes
+                       FROM post p LEFT JOIN likes l ON l.post_id = p.id
+                       WHERE p.usuario_id = :uid AND {rango_post}
+                       GROUP BY p.id"""
+        resumen = self.db.execute(text(
+            f"SELECT count(*) AS posts, coalesce(avg(likes), 0) AS promedio FROM ({por_post}) x"), p).mappings().one()
+        top_post = self.db.execute(text(
+            f"SELECT * FROM ({por_post}) x ORDER BY likes DESC, fecha_publicacion DESC LIMIT 1"), p).mappings().first()
+        top_seguidor = self.db.execute(text(
+            """SELECT u.id, u.username, u.nombre, count(*) AS likes
+               FROM likes l JOIN post p ON p.id = l.post_id JOIN usuario u ON u.id = l.usuario_id
+               JOIN seguidores s ON s.seguidor_id = l.usuario_id AND s.seguido_id = :uid AND s.estado = 'aceptado'
+               WHERE p.usuario_id = :uid
+                 AND (CAST(:desde AS timestamp) IS NULL OR l.fecha >= :desde)
+                 AND (CAST(:hasta AS timestamp) IS NULL OR l.fecha < :hasta)
+               GROUP BY u.id ORDER BY likes DESC, min(l.fecha) LIMIT 1"""), p).mappings().first()
+        return {
+            "cantidad_posts": resumen["posts"],
+            "promedio_likes_por_post": round(float(resumen["promedio"]), 2),
+            "post_con_mas_likes": dict(top_post) if top_post and top_post["likes"] > 0 else None,
+            "seguidor_que_mas_likes_dio": dict(top_seguidor) if top_seguidor else None,
+        }

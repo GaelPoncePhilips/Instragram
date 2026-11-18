@@ -121,7 +121,7 @@ Un reel es un `Post` con `tipo = "reel"`: comparte likes, comentarios, hashtags,
 
 ## EXTRA: Álbumes compartidos
 
-Visible para: miembros `aceptados` **y** seguidores `aceptados` de cualquier miembro `aceptado` (salvo bloqueo con el creador). Solo los miembros suben items.
+Visible para: miembros (los invitados `pendientes` también, para decidir) **y** seguidores `aceptados` de cualquier miembro `aceptado` (salvo bloqueo con el creador). Solo los miembros suben items.
 
 | Método | Ruta | Quién | Descripción |
 |---|---|---|---|

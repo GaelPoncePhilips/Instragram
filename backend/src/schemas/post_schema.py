@@ -17,3 +17,14 @@ class CreatePostSchema(BaseModel):
         if self.tipo == "foto" and (self.url_video or self.duracion_seg):
             raise ValueError("url_video y duracion_seg son solo para reels")
         return self
+
+
+class CreateComentarioSchema(BaseModel):
+    texto: str = Field(min_length=1, max_length=300)
+
+    @model_validator(mode="after")
+    def no_vacio(self):
+        if not self.texto.strip():
+            raise ValueError("El comentario no puede estar vacío")
+        self.texto = self.texto.strip()
+        return self

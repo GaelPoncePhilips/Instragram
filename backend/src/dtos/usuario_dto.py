@@ -50,3 +50,26 @@ class PerfilDTO(BaseModel):
     cantidad_seguidores: int
     cantidad_seguidos: int
     relacion: str  # 'yo' | 'siguiendo' | 'pendiente' | 'ninguna'
+
+
+class SugerenciaDTO(UsuarioResumenDTO):
+    en_comun: int
+    te_sigue: bool
+
+
+class TopPostDTO(BaseModel):
+    id: int
+    url_imagen: str
+    fecha_publicacion: datetime
+    likes: int
+
+
+class TopSeguidorDTO(UsuarioResumenDTO):
+    likes: int
+
+
+class EstadisticasDTO(BaseModel):
+    cantidad_posts: int
+    promedio_likes_por_post: float
+    post_con_mas_likes: TopPostDTO | None
+    seguidor_que_mas_likes_dio: TopSeguidorDTO | None
