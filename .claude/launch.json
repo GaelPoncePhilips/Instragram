@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ronda-frontend",
+      "runtimeExecutable": "C:\\Users\\User\\.bun\\bin\\bun.exe",
+      "runtimeArgs": ["run", "--cwd", "frontend", "dev", "--port", "5173", "--strictPort"],
+      "port": 5173
+    }
+  ]
+}

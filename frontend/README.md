@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ronda — frontend
 
-## Getting Started
+Red social con la estructura de Instagram y piel Material 3 Expressive. React 19 + TypeScript strict + Vite + React Router + Tailwind 4 + Zustand. Runtime y gestor de paquetes: **Bun**.
 
-First, run the development server:
+## Levantar todo (desde la raíz del repo)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+./run.sh          # backend (:8000) + frontend (:5173) contra el backend real
+./run.sh --mock   # solo el frontend con el backend simulado
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`run.sh` crea el venv del backend, instala dependencias (pip y bun), crea `backend/.env` desde `.env.example` si no existe (y se detiene para que completes `DATABASE_URL` y `JWT_SECRET`), y cierra los dos procesos con Ctrl+C. El frontend llama al backend por el proxy `/api` de Vite, así no hace falta CORS y también funciona desde el celular.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Instalar y ejecutar
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd frontend
+bun install
+cp .env.example .env        # opcional: por defecto usa el mock
+bun run dev                 # http://localhost:5173 (y la IP de tu red, para el celular)
+```
 
-## Learn More
+Otros scripts:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bun run build               # tsc -b + vite build
+bunx tsc --noEmit -p tsconfig.app.json
+bun run lint                # oxlint
+bun run preview             # sirve dist/ en :4173
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Probar desde el celular
+`vite.config.ts` tiene `server.host: true`. Con `bun run dev`, Vite muestra una línea `Network: http://<IP-de-tu-PC>:5173`. Abrila desde el celular conectado al mismo Wi-Fi. Si no carga, permití Bun/Node en el Firewall de Windows (o marcá la red como Privada).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Cuentas de prueba (mock)
+Contraseña de todas: `ronda123`. Email: username sin "." ni "_" + `@ronda.dev` (p. ej. `anarios@ronda.dev`). En el login hay chips para rellenarlas, y en "Más → Cambiar usuario (dev)" o en Ajustes se cambia de cuenta sin recargar.
 
-## Deploy on Vercel
+- `ana.rios`: privada; cuenta principal con solicitudes, invitación a álbum y DMs sin leer.
+- `ines_lee`: privada, Ana no la sigue → 403.
+- `kike.troll`: bloqueado por Ana → 404.
+- `juli.run`: reels desactivados → 403 en Reels.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+El mock vive en memoria: **recargar la página reinicia los datos** (la sesión se mantiene).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Estructura
+
+```
+src/
+  app/          App (rutas), layout (BottomNav, MobileTopBar, SideNav, paneles, CreateMenu, DevSwitcher)
+  components/   ui/ (componentes M3 propios), shared.tsx (UserRow, FollowButton, PostGrid…), ErrorBoundary
+  features/     auth, feed, post, stories, profile, highlights, settings, search, explore, hashtags,
+                reels, dm, notifications, create, albums
+  services/     client.ts (cliente único) + un archivo por dominio · temporal/ (parches)
+  mocks/        db, seed, rules, server, handlers/ · temporal/ (endpoints que faltan en el contrato)
+  stores/       session, ui, badges (Zustand)
+  theme/        color.ts (HCT → --md-sys-color-*), motion.ts (springs → linear())
+  types/        api.ts (contrato tal cual, snake_case), temporal.ts
+```
+
+## Cómo pasar del mock al backend real
+
+1. Levantá el backend (`backend/README.md`) en `http://localhost:8000`.
+2. En `frontend/.env`:
+   ```
+   VITE_USE_MOCK=false
+   VITE_API_URL=http://localhost:8000/api
+   ```
+   Si el front corre en otro origen, el backend tiene que habilitar CORS para `http://localhost:5173` (y para la IP de la red si probás desde el celular).
+3. Los **parches temporales siguen respondiendo desde el mock** aunque `VITE_USE_MOCK=false`: notificaciones, búsqueda de usuarios, usuario por id, videos en álbumes, avatares, guardados y cuentas de desarrollo. Con backend real, el mock identifica al usuario por su `username`.
+4. Cuando el backend implemente uno de esos endpoints, poné `VITE_TEMPORAL_<NOMBRE>=false` y seguí `docs/TEMPORAL.md` (raíz del repo) para saber qué borrar.
+5. Switcher de desarrollo: hace login real con las cuentas del seed. En el backend real hay que crear esos usuarios con la contraseña `ronda123`, o poner `VITE_TEMPORAL_DEV_CUENTAS=false`.
+
+## Documentación
+- `docs/API.md`: endpoints que usa el frontend (tablas y DTOs). El contrato fuente de verdad es `../docs/API.md`.
+- `../docs/TEMPORAL.md`: parches temporales.
+- `../docs/CHECKLIST.md`: estado de cada HU y extra.
+- `../docs/DISENO.md`: decisiones de diseño. `../docs/investigacion.md`: investigación.
+- `TASKS.md`: lista de tareas.
