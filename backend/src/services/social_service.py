@@ -52,7 +52,7 @@ class SocialService:
     def bloquear(self, yo: int, otro_id: int) -> None:
         if yo == otro_id:
             raise BadRequestError("No podés bloquearte a vos mismo")
-        if self.usuarios.buscar_por_id(otro_id) is None:
+        if self.usuarios.buscar_activo(otro_id) is None:
             raise NotFoundError("Usuario no encontrado")
         if self.bloqueos.obtener(yo, otro_id):
             raise ConflictError("Ya bloqueaste a este usuario")

@@ -19,6 +19,11 @@ class CreatePostSchema(BaseModel):
         return self
 
 
+class UpdatePostSchema(BaseModel):
+    """Solo se edita la descripción (la imagen/video no cambia, como en Instagram)."""
+    descripcion: str | None = Field(default=None, max_length=2200)
+
+
 class CreateComentarioSchema(BaseModel):
     texto: str = Field(min_length=1, max_length=300)
 

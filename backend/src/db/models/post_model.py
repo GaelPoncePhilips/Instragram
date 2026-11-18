@@ -15,3 +15,4 @@ class Post(Base):
     tipo = Column(String(5), nullable=False, server_default="foto")  # EXTRA: 'foto' | 'reel'
     url_video = Column(String)  # EXTRA: solo reels
     duracion_seg = Column(Integer)  # EXTRA: solo reels
+    fecha_edicion = Column(DateTime)  # EXTRA

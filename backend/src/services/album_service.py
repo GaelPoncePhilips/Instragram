@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from src.db.models.album_model import Album, AlbumItem, AlbumMiembro
 from src.dtos.extra_dto import AlbumDTO, AlbumItemDTO, AlbumMiembroDTO
+from src.repositories.notificacion_repository import NotificacionRepository
 from src.repositories.usuario_repository import UsuarioRepository
 from src.utils.errors import BadRequestError, ConflictError, ForbiddenError, NotFoundError
 
@@ -47,7 +48,7 @@ class AlbumService:
     def _dto(self, a: Album) -> AlbumDTO:
         miembros = self.db.execute(text(
             """SELECT u.id, u.username, u.nombre, m.rol, m.estado FROM album_miembro m
-               JOIN usuario u ON u.id = m.usuario_id WHERE m.album_id = :id ORDER BY m.fecha"""),
+               JOIN usuario u ON u.id = m.usuario_id AND u.eliminado_en IS NULL WHERE m.album_id = :id ORDER BY m.fecha"""),
             {"id": a.id}).mappings().all()
         portada = a.portada_url or self.db.query(AlbumItem.url_imagen).filter(
             AlbumItem.album_id == a.id).order_by(AlbumItem.fecha, AlbumItem.id).limit(1).scalar()
@@ -93,7 +94,7 @@ class AlbumService:
     # ---------- miembros
     def invitar(self, album_id: int, yo: int, invitado_id: int) -> AlbumDTO:
         self._exigir(album_id, yo, admin=True)
-        if self.usuarios.buscar_por_id(invitado_id) is None:
+        if self.usuarios.buscar_activo(invitado_id) is None:
             raise NotFoundError("Usuario no encontrado")
         a = self.db.get(Album, album_id)
         if self.usuarios.hay_bloqueo(invitado_id, yo) or self.usuarios.hay_bloqueo(invitado_id, a.creador_id):
@@ -101,6 +102,7 @@ class AlbumService:
         if self._miembro(album_id, invitado_id):
             raise ConflictError("Ya es miembro o tiene una invitación pendiente")
         self.db.add(AlbumMiembro(album_id=album_id, usuario_id=invitado_id))
+        NotificacionRepository(self.db).crear(invitado_id, yo, "invitacion_album", album_id=album_id)
         self.db.commit()
         return self._dto(a)
 

@@ -16,6 +16,8 @@ if not URL.rsplit("/", 1)[-1].split("?")[0].endswith("_test"):
     pytest.exit("Definí TEST_DATABASE_URL apuntando a una base cuyo nombre termine en _test", returncode=2)
 os.environ["DATABASE_URL"] = URL
 os.environ.setdefault("JWT_SECRET", "test")
+import tempfile  # noqa: E402
+os.environ["MEDIA_DIR"] = tempfile.mkdtemp(prefix="ig_media_")
 
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
@@ -47,14 +49,14 @@ class Usuario:
         assert r.status_code == 201, r.text
         self.id = r.json()["id"]
         self.username = username
-        tok = client.post("/api/auth/login", json={"email": f"{username}@x.com", "password": "secreta123"})
-        self.h = {"Authorization": f"Bearer {tok.json()['access_token']}"}
+        self.tokens = client.post("/api/auth/login", json={"email": f"{username}@x.com", "password": "secreta123"}).json()
+        self.h = {"Authorization": f"Bearer {self.tokens['access_token']}"}
 
     def get(self, url, **kw): return self.c.get("/api" + url, headers=self.h, **kw)
     def post(self, url, json=None): return self.c.post("/api" + url, headers=self.h, json=json)
     def patch(self, url, json=None): return self.c.patch("/api" + url, headers=self.h, json=json)
     def put(self, url, json=None): return self.c.put("/api" + url, headers=self.h, json=json)
-    def delete(self, url): return self.c.delete("/api" + url, headers=self.h)
+    def delete(self, url, json=None): return self.c.request("DELETE", "/api" + url, headers=self.h, json=json)
 
     def seguir(self, otro: "Usuario"):
         return self.post(f"/usuarios/{otro.id}/seguir")

@@ -18,16 +18,23 @@ Reglas transversales (aplican a todo):
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/auth/login` | `{email, password}` → `{access_token}` |
+| POST | `/auth/login` | `{email, password}` → `{access_token, refresh_token, expira_en_segundos}` |
+| POST | `/auth/refresh` | `{refresh_token}` → tokens nuevos. Rota el refresh token; reusar uno viejo revoca la sesión entera. |
+| POST | `/auth/logout` | `{refresh_token}` → revoca la sesión |
 | GET | `/auth/me` | Usuario logueado |
+
+El access token dura 15 min (`ACCESS_TOKEN_MINUTOS`) y el refresh token 30 días (`REFRESH_TOKEN_DIAS`). En la base solo se guarda el sha256 del refresh token.
 
 ## Usuarios — HU1, HU4, HU12
 
 | Método | Ruta | Quién | Descripción |
 |---|---|---|---|
 | POST | `/usuarios` | público | Registro `{username, email, password, nombre, bio?}`. 409 si username/email existen. Arranca pública. |
+| GET | `/usuarios?q=` | todos | Buscar por prefijo de username o nombre (sin bloqueados ni cuentas borradas). Orden: exacto, seguidos, populares. |
 | GET | `/usuarios/{username}` | todos | Perfil + `cantidad_posts`, `cantidad_seguidores`, `cantidad_seguidos`, `relacion` (`siguiendo`/`pendiente`/`ninguna`). |
 | PATCH | `/usuarios/{id}` | dueño | `{nombre?, bio?, es_privada?, reels_desactivados?}`. Privada → pública acepta las pendientes. |
+| PATCH | `/usuarios/{id}/password` | dueño | `{actual, nueva}`. Cierra las demás sesiones y devuelve tokens nuevos. |
+| DELETE | `/usuarios/{id}` | dueño | `{password}`. **Borrado lógico** (`eliminado_en`): la cuenta y su contenido, likes, comentarios y seguimientos dejan de verse; los datos quedan y el username/email siguen reservados. |
 | GET | `/usuarios/{id}/seguidores` | según privacidad | Seguidores aceptados |
 | GET | `/usuarios/{id}/seguidos` | según privacidad | Seguidos aceptados |
 | GET | `/usuarios/{id}/no-me-siguen` | dueño | A quiénes sigo y no me siguen |
@@ -51,6 +58,7 @@ Un reel es un `Post` con `tipo = "reel"`: comparte likes, comentarios, hashtags,
 |---|---|---|---|
 | POST | `/posts` | todos | `{tipo: "foto"\|"reel", url_imagen, url_video?, duracion_seg?, descripcion?}`. Reel exige `url_video` (`url_imagen` = portada). Hashtags automáticos. |
 | GET | `/posts/{id}` | según privacidad | Post con autor, likes, comentarios, `me_gusta` |
+| PATCH | `/posts/{id}` | autor | `{descripcion}`. Re-sincroniza hashtags; marca `fecha_edicion`. |
 | DELETE | `/posts/{id}` | autor | |
 | GET | `/usuarios/{id}/posts?tipo=` | según privacidad | Posts del usuario (403 si no autorizado) |
 | GET | `/usuarios/{id}/reels` | según privacidad | Atajo de `?tipo=reel` |
@@ -59,6 +67,7 @@ Un reel es un `Post` con `tipo = "reel"`: comparte likes, comentarios, hashtags,
 | GET | `/posts/{id}/likes` | si puede verlo | Usuarios que dieron like (sin los bloqueados por el dueño) |
 | GET | `/posts/{id}/comentarios` | si puede verlo | Sin los de bloqueados por el dueño |
 | POST | `/posts/{id}/comentarios` | si puede verlo | `{texto}` 1–300 caracteres |
+| PATCH | `/comentarios/{id}` | autor del comentario | `{texto}`; marca `fecha_edicion` |
 | DELETE | `/comentarios/{id}` | autor del comentario o dueño del post | |
 
 ## Feed, Reels y Explorar — HU6, EXTRA
@@ -153,3 +162,25 @@ Una conversación 1 a 1 es única por par. Si el destinatario no sigue al emisor
 | POST | `/conversaciones/{id}/leido` | participante | Marca todo como leído |
 | DELETE | `/mensajes/{id}` | emisor | Anular envío |
 | DELETE | `/conversaciones/{id}` | participante | Salir / ocultar |
+
+## EXTRA: Archivos
+
+| Método | Ruta | Quién | Descripción |
+|---|---|---|---|
+| POST | `/media` | todos | `multipart/form-data` con campo `archivo` → `{url, tipo, tamano_bytes}`. Imágenes JPG/PNG/WEBP/GIF (máx. 10 MB) o videos MP4/MOV/WEBM (máx. 100 MB). El tipo se detecta por el contenido. La `url` se usa después en posts, reels, stories y álbumes. |
+| GET | `/media/...` (sin `/api`) | público | Sirve los archivos subidos |
+
+## EXTRA: Notificaciones
+
+Tipos: `seguidor_nuevo`, `solicitud`, `solicitud_aceptada`, `like`, `comentario`, `invitacion_album`. No se notifica a uno mismo; quitar el like o rechazar/cancelar la solicitud borra la notificación; las de bloqueados o cuentas borradas no se muestran.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/notificaciones?solo_no_leidas=false` | Más nuevas primero, con `actor` y `post_id` / `comentario_id` / `album_id` |
+| GET | `/notificaciones/no-leidas` | `{no_leidas}` para el globito |
+| POST | `/notificaciones/leidas` | Marca todas como leídas |
+| POST | `/notificaciones/{id}/leida` | Marca una |
+
+## Configuración (`.env`)
+
+`CORS_ORIGINS` (orígenes del frontend separados por coma, default `http://localhost:3000`), `MEDIA_DIR`, `MEDIA_URL`, `ACCESS_TOKEN_MINUTOS`, `REFRESH_TOKEN_DIAS`.

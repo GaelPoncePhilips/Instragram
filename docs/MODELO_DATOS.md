@@ -99,6 +99,15 @@ Un reel es un `Post` con `tipo = 'reel'` y `url_video` obligatorio (`url_imagen`
 
 Reglas del service: una conversación 1 a 1 por par; si el destinatario no sigue al emisor entra como `solicitud`; con bloqueo no se puede escribir; compartir un post respeta su privacidad.
 
+## EXTRA: cuentas, notificaciones y sesiones
+
+| Tabla / columna | Descripción |
+|---|---|
+| `Usuario.eliminado_en` | Borrado lógico. Con valor, la cuenta no puede loguearse y desaparece de todas las consultas (perfil, posts, listas, contadores, likes, comentarios, búsqueda, notificaciones). |
+| `Post.fecha_edicion`, `Comentario.fecha_edicion` | Última edición. |
+| `Notificacion` | Destinatario, `actor`, `tipo` y referencia opcional a post / comentario / álbum; `leida`. |
+| `refresh_token` | sha256 del token, `familia` (cadena de rotación), `expira_en`, `revocado_en`. |
+
 ## Reglas que no están en la base (van en los services)
 
 | Regla | HU |
@@ -119,4 +128,4 @@ createdb instagram
 psql instagram -f backend/src/db/tables.sql
 ```
 
-Una base creada con la versión anterior del script se actualiza con `backend/src/db/migrations/001_indices_reels_dms.sql`.
+Una base creada con una versión anterior del script se actualiza aplicando, en orden, los archivos de `backend/src/db/migrations/` que le falten.

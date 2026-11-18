@@ -13,3 +13,4 @@ venv/
 .idea/
 .vscode/
 .DS_Store
+media/

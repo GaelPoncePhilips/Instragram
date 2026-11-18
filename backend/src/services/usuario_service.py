@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 
-from src.dtos.usuario_dto import CreateUsuarioDTO, PerfilDTO, UpdateUsuarioDTO, UsuarioResponseDTO
+from src.dtos.usuario_dto import (
+    CreateUsuarioDTO, PerfilDTO, UpdateUsuarioDTO, UsuarioResponseDTO, UsuarioResumenDTO,
+)
 from src.mappers.usuario_mapper import to_usuario_response
 from src.repositories.seguidor_repository import SeguidorRepository
 from src.repositories.usuario_repository import UsuarioRepository
@@ -29,7 +31,7 @@ class UsuarioService:
 
     def perfil(self, username: str, visitante_id: int) -> PerfilDTO:
         usuario = self.repo.buscar_por_username(username)
-        if usuario is None or (
+        if usuario is None or usuario.eliminado_en is not None or (
             usuario.id != visitante_id and self.repo.hay_bloqueo(usuario.id, visitante_id)
         ):
             raise NotFoundError("Usuario no encontrado")
@@ -49,6 +51,9 @@ class UsuarioService:
             relacion=relacion,
             **self.repo.contadores(usuario.id),
         )
+
+    def buscar(self, q: str, yo: int, limit: int, offset: int) -> list[UsuarioResumenDTO]:
+        return [UsuarioResumenDTO(**f) for f in self.repo.buscar(q.strip().lstrip("@"), yo, limit, offset)]
 
     def actualizar(self, usuario_id: int, dto: UpdateUsuarioDTO) -> UsuarioResponseDTO:
         usuario = self.repo.buscar_por_id(usuario_id)

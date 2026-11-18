@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.db.models.bloqueo_model import MejorAmigo
 from src.db.models.seguidor_model import Seguidor
+from src.repositories.notificacion_repository import NotificacionRepository
 from src.repositories.sql import sin_bloqueo
 
 
@@ -20,12 +21,18 @@ class SeguidorRepository:
     def crear(self, seguidor_id: int, seguido_id: int, estado: str) -> Seguidor:
         seguimiento = Seguidor(seguidor_id=seguidor_id, seguido_id=seguido_id, estado=estado)
         self.db.add(seguimiento)
+        NotificacionRepository(self.db).crear(
+            seguido_id, seguidor_id, "solicitud" if estado == "pendiente" else "seguidor_nuevo")
         self.db.commit()
         self.db.refresh(seguimiento)
         return seguimiento
 
     def aceptar(self, seguimiento: Seguidor) -> Seguidor:
         seguimiento.estado = "aceptado"
+        notis = NotificacionRepository(self.db)
+        notis.borrar(seguimiento.seguido_id, seguimiento.seguidor_id, "solicitud")
+        notis.crear(seguimiento.seguido_id, seguimiento.seguidor_id, "seguidor_nuevo")
+        notis.crear(seguimiento.seguidor_id, seguimiento.seguido_id, "solicitud_aceptada")
         self.db.commit()
         self.db.refresh(seguimiento)
         return seguimiento
@@ -36,6 +43,8 @@ class SeguidorRepository:
             MejorAmigo.usuario_id == seguimiento.seguido_id,
             MejorAmigo.amigo_id == seguimiento.seguidor_id,
         ).delete(synchronize_session=False)
+        if seguimiento.estado == "pendiente":
+            NotificacionRepository(self.db).borrar(seguimiento.seguido_id, seguimiento.seguidor_id, "solicitud")
         self.db.delete(seguimiento)
         self.db.commit()
 
@@ -49,20 +58,20 @@ class SeguidorRepository:
 
     def seguidores_de(self, usuario_id: int, limit: int, offset: int) -> list[dict]:
         return self._usuarios(
-            """SELECT u.id, u.username, u.nombre FROM seguidores s JOIN usuario u ON u.id = s.seguidor_id
+            """SELECT u.id, u.username, u.nombre FROM seguidores s JOIN usuario u ON u.id = s.seguidor_id AND u.eliminado_en IS NULL
                WHERE s.seguido_id = :uid AND s.estado = 'aceptado' ORDER BY s.fecha DESC LIMIT :limit OFFSET :offset""",
             uid=usuario_id, limit=limit, offset=offset)
 
     def seguidos_de(self, usuario_id: int, limit: int, offset: int) -> list[dict]:
         return self._usuarios(
-            """SELECT u.id, u.username, u.nombre FROM seguidores s JOIN usuario u ON u.id = s.seguido_id
+            """SELECT u.id, u.username, u.nombre FROM seguidores s JOIN usuario u ON u.id = s.seguido_id AND u.eliminado_en IS NULL
                WHERE s.seguidor_id = :uid AND s.estado = 'aceptado' ORDER BY s.fecha DESC LIMIT :limit OFFSET :offset""",
             uid=usuario_id, limit=limit, offset=offset)
 
     def no_me_siguen(self, usuario_id: int, limit: int, offset: int) -> list[dict]:
         """A quiénes sigo (aceptado) y no me siguen (HU12)."""
         return self._usuarios(
-            """SELECT u.id, u.username, u.nombre FROM seguidores s JOIN usuario u ON u.id = s.seguido_id
+            """SELECT u.id, u.username, u.nombre FROM seguidores s JOIN usuario u ON u.id = s.seguido_id AND u.eliminado_en IS NULL
                WHERE s.seguidor_id = :uid AND s.estado = 'aceptado'
                  AND NOT EXISTS (SELECT 1 FROM seguidores r WHERE r.seguidor_id = s.seguido_id
                                  AND r.seguido_id = :uid AND r.estado = 'aceptado')
@@ -81,7 +90,7 @@ class SeguidorRepository:
                             AND s3.estado = 'aceptado') AS te_sigue,
                     (SELECT count(*) FROM seguidores s4 WHERE s4.seguido_id = u.id AND s4.estado = 'aceptado') AS populares
                   FROM usuario u
-                  WHERE u.id <> :yo AND {sin_bloqueo('u')}
+                  WHERE u.id <> :yo AND u.eliminado_en IS NULL AND {sin_bloqueo('u')}
                     AND NOT EXISTS (SELECT 1 FROM seguidores s WHERE s.seguidor_id = :yo AND s.seguido_id = u.id)
                 ) x
                 ORDER BY 3 * en_comun + 2 * te_sigue::int + ln(1 + populares) DESC, id

@@ -14,7 +14,7 @@ class PermisosService:
 
     def usuario_visible(self, usuario_id: int, visitante_id: int) -> Usuario:
         """Devuelve el usuario o 404 si no existe o hay bloqueo entre ambos."""
-        usuario = self.usuarios.buscar_por_id(usuario_id)
+        usuario = self.usuarios.buscar_activo(usuario_id)
         if usuario is None or (
             usuario.id != visitante_id and self.usuarios.hay_bloqueo(usuario.id, visitante_id)
         ):

@@ -26,7 +26,7 @@ Base nueva:
 psql "<url>" -f src/db/tables.sql
 ```
 
-Una base creada con la versión anterior del script se actualiza con `src/db/migrations/001_indices_reels_dms.sql`.
+Una base creada con una versión anterior del script se actualiza aplicando, en orden, los archivos de `src/db/migrations/` que le falten.
 El esquema lo define `tables.sql`; los modelos de SQLAlchemy solo lo mapean (no hay `create_all`).
 
 ### Levantar
@@ -69,5 +69,7 @@ Flujo: **Router → Schema → DTO → Service → Repository → Model**. Los e
 `AppError` (`NotFoundError` 404, `ForbiddenError` 403, …) y el middleware los convierte en
 `{"error": ..., "message": ...}`.
 
-Autenticación: `POST /api/auth/login` devuelve un JWT; el resto de las rutas lo piden en
-`Authorization: Bearer <token>`.
+Autenticación: `POST /api/auth/login` devuelve un access token (JWT, 15 min) y un refresh token (30 días);
+el resto de las rutas piden `Authorization: Bearer <access_token>` y `/api/auth/refresh` renueva los dos.
+
+Archivos: `POST /api/media` los guarda en `MEDIA_DIR` y se sirven en `/media/...`.

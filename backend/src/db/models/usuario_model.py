@@ -15,4 +15,5 @@ class Usuario(Base):
     bio = Column(String(255))
     es_privada = Column(Boolean, nullable=False, server_default="false")
     reels_desactivados = Column(Boolean, nullable=False, server_default="false")  # EXTRA
+    eliminado_en = Column(DateTime)  # EXTRA: borrado lógico
     fecha_registro = Column(DateTime, nullable=False, server_default=func.now())

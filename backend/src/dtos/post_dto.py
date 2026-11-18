@@ -40,6 +40,7 @@ class PostDetalleDTO(BaseModel):
     cantidad_likes: int
     cantidad_comentarios: int
     me_gusta: bool
+    fecha_edicion: datetime | None = None
     motivo: str | None = None
 
 
@@ -50,3 +51,4 @@ class ComentarioDTO(BaseModel):
     autor_username: str
     texto: str
     fecha: datetime
+    fecha_edicion: datetime | None = None

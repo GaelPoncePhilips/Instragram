@@ -12,3 +12,4 @@ from src.db.models.bloqueo_model import Bloqueo, MejorAmigo
 from src.db.models.destacada_model import Destacada, DestacadaStory
 from src.db.models.album_model import Album, AlbumMiembro, AlbumItem
 from src.db.models.conversacion_model import Conversacion, ConversacionParticipante, Mensaje
+from src.db.models.notificacion_model import Notificacion, RefreshToken

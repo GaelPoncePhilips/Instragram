@@ -20,7 +20,7 @@ def get_current_user(
     if usuario_id is None:
         raise UnauthorizedError("Token inválido")
 
-    usuario = UsuarioRepository(db).buscar_por_id(int(usuario_id))
+    usuario = UsuarioRepository(db).buscar_activo(int(usuario_id))
     if usuario is None:
         raise UnauthorizedError("El usuario ya no existe")
     return usuario

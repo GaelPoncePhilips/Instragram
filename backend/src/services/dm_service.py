@@ -38,7 +38,7 @@ class DMService:
         c = self.db.get(Conversacion, conv_id)
         yo_p = self._participante(conv_id, yo)
         participantes = self.db.execute(text(
-            """SELECT u.id, u.username, u.nombre FROM conversacion_participante cp JOIN usuario u ON u.id = cp.usuario_id
+            """SELECT u.id, u.username, u.nombre FROM conversacion_participante cp JOIN usuario u ON u.id = cp.usuario_id AND u.eliminado_en IS NULL
                WHERE cp.conversacion_id = :c ORDER BY u.username"""), {"c": conv_id}).mappings().all()
         ultimo = self.db.query(Mensaje).filter(Mensaje.conversacion_id == conv_id).order_by(Mensaje.id.desc()).first()
         no_leidos = self.db.execute(text(
@@ -71,7 +71,7 @@ class DMService:
         if not otros:
             raise BadRequestError("Necesitás al menos otro participante")
         for uid in otros:
-            if self.usuarios.buscar_por_id(uid) is None or self.usuarios.hay_bloqueo(uid, yo):
+            if self.usuarios.buscar_activo(uid) is None or self.usuarios.hay_bloqueo(uid, yo):
                 raise NotFoundError(f"Usuario {uid} no encontrado")
         es_grupal = len(otros) > 1
         if not es_grupal:
@@ -101,7 +101,8 @@ class DMService:
 
     def enviar(self, conv_id: int, yo: int, texto: str | None, post_id: int | None) -> MensajeDTO:
         p = self._participante(conv_id, yo)
-        if any(self.usuarios.hay_bloqueo(o, yo) for o in self._otros(conv_id, yo)):
+        otros = self._otros(conv_id, yo)
+        if any(self.usuarios.hay_bloqueo(o, yo) for o in otros) or not any(self.usuarios.buscar_activo(o) for o in otros):
             raise ForbiddenError("No podés escribir en esta conversación")
         if post_id is not None:
             PostService(self.db).obtener(post_id, yo)  # 404/403 si no puede ver el post

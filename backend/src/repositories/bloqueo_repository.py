@@ -32,7 +32,7 @@ class BloqueoRepository:
 
     def bloqueados_por(self, yo: int, limit: int, offset: int) -> list[dict]:
         return [dict(r) for r in self.db.execute(text(
-            """SELECT u.id, u.username, u.nombre FROM bloqueo b JOIN usuario u ON u.id = b.bloqueado_id
+            """SELECT u.id, u.username, u.nombre FROM bloqueo b JOIN usuario u ON u.id = b.bloqueado_id AND u.eliminado_en IS NULL
                WHERE b.bloqueador_id = :yo ORDER BY b.fecha DESC LIMIT :limit OFFSET :offset"""),
             {"yo": yo, "limit": limit, "offset": offset}).mappings().all()]
 
@@ -53,6 +53,6 @@ class BloqueoRepository:
 
     def mejores_amigos(self, usuario_id: int, limit: int, offset: int) -> list[dict]:
         return [dict(r) for r in self.db.execute(text(
-            """SELECT u.id, u.username, u.nombre FROM mejores_amigos m JOIN usuario u ON u.id = m.amigo_id
+            """SELECT u.id, u.username, u.nombre FROM mejores_amigos m JOIN usuario u ON u.id = m.amigo_id AND u.eliminado_en IS NULL
                WHERE m.usuario_id = :uid ORDER BY u.username LIMIT :limit OFFSET :offset"""),
             {"uid": usuario_id, "limit": limit, "offset": offset}).mappings().all()]

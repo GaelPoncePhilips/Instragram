@@ -44,6 +44,26 @@ class PostService:
         self.permisos.exigir_ver_contenido(usuario_id, yo)
         return [PostDetalleDTO(**f) for f in self.repo.listar_por_usuario(usuario_id, yo, tipo, limit, offset)]
 
+    def editar(self, post_id: int, yo: int, descripcion: str | None) -> PostDetalleDTO:
+        post = self.repo.buscar_por_id(post_id)
+        if post is None:
+            raise NotFoundError("Post no encontrado")
+        if post.usuario_id != yo:
+            raise ForbiddenError("Solo el autor puede editar el post")
+        self.repo.editar_descripcion(post, descripcion, extraer_hashtags(descripcion))
+        return PostDetalleDTO(**self.repo.detalle(post_id, yo))
+
+    def editar_comentario(self, comentario_id: int, yo: int, texto: str) -> ComentarioDTO:
+        c = self.repo.buscar_comentario(comentario_id)
+        if c is None:
+            raise NotFoundError("Comentario no encontrado")
+        if c.usuario_id != yo:
+            raise ForbiddenError("Solo el autor puede editar el comentario")
+        self.repo.editar_comentario(c, texto)
+        autor = self.permisos.usuarios.buscar_activo(yo)
+        return ComentarioDTO(id=c.id, post_id=c.post_id, usuario_id=c.usuario_id, autor_username=autor.username,
+                             texto=c.texto, fecha=c.fecha, fecha_edicion=c.fecha_edicion)
+
     def eliminar(self, post_id: int, yo: int) -> None:
         post = self.repo.buscar_por_id(post_id)
         if post is None:
@@ -71,23 +91,24 @@ class PostService:
 
     # ---------- likes y comentarios (HU5)
     def dar_like(self, post_id: int, yo: int) -> PostDetalleDTO:
-        self._post_visible(post_id, yo)
-        self.repo.dar_like(yo, post_id)
+        post = self._post_visible(post_id, yo)
+        self.repo.dar_like(yo, post)
         return PostDetalleDTO(**self.repo.detalle(post_id, yo))
 
     def quitar_like(self, post_id: int, yo: int) -> None:
-        if self.repo.buscar_por_id(post_id) is None:
+        post = self.repo.buscar_por_id(post_id)
+        if post is None:
             raise NotFoundError("Post no encontrado")
-        self.repo.quitar_like(yo, post_id)
+        self.repo.quitar_like(yo, post)
 
     def likes(self, post_id: int, yo: int, limit: int, offset: int):
         self._post_visible(post_id, yo)
         return [UsuarioResumenDTO(**f) for f in self.repo.usuarios_que_dieron_like(post_id, limit, offset)]
 
     def comentar(self, post_id: int, yo: int, texto: str) -> ComentarioDTO:
-        self._post_visible(post_id, yo)
-        c = self.repo.comentar(yo, post_id, texto)
-        autor = self.permisos.usuarios.buscar_por_id(yo)
+        post = self._post_visible(post_id, yo)
+        c = self.repo.comentar(yo, post, texto)
+        autor = self.permisos.usuarios.buscar_activo(yo)
         return ComentarioDTO(id=c.id, post_id=c.post_id, usuario_id=c.usuario_id,
                              autor_username=autor.username, texto=c.texto, fecha=c.fecha)
 

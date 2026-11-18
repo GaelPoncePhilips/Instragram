@@ -9,7 +9,7 @@ from src.dtos.post_dto import ComentarioDTO, CreatePostDTO, PostDetalleDTO
 from src.dtos.usuario_dto import UsuarioResumenDTO
 from src.middlewares.auth_middleware import get_current_user, verificar_dueno
 from src.routers.deps import Pagina
-from src.schemas.post_schema import CreateComentarioSchema, CreatePostSchema
+from src.schemas.post_schema import CreateComentarioSchema, CreatePostSchema, UpdatePostSchema
 from src.services.post_service import PostService
 
 router = APIRouter(tags=["posts"])
@@ -23,6 +23,12 @@ def publicar(payload: CreatePostSchema, db: Session = Depends(get_db), actual: U
 @router.get("/posts/{post_id}", response_model=PostDetalleDTO)
 def obtener(post_id: int, db: Session = Depends(get_db), actual: Usuario = Depends(get_current_user)):
     return PostService(db).obtener(post_id, actual.id)
+
+
+@router.patch("/posts/{post_id}", response_model=PostDetalleDTO)
+def editar(post_id: int, payload: UpdatePostSchema, db: Session = Depends(get_db),
+           actual: Usuario = Depends(get_current_user)):
+    return PostService(db).editar(post_id, actual.id, payload.descripcion)
 
 
 @router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -92,6 +98,12 @@ def comentarios(post_id: int, pag: Pagina = Depends(), db: Session = Depends(get
 def comentar(post_id: int, payload: CreateComentarioSchema, db: Session = Depends(get_db),
              actual: Usuario = Depends(get_current_user)):
     return PostService(db).comentar(post_id, actual.id, payload.texto)
+
+
+@router.patch("/comentarios/{comentario_id}", response_model=ComentarioDTO)
+def editar_comentario(comentario_id: int, payload: CreateComentarioSchema, db: Session = Depends(get_db),
+                      actual: Usuario = Depends(get_current_user)):
+    return PostService(db).editar_comentario(comentario_id, actual.id, payload.texto)
 
 
 @router.delete("/comentarios/{comentario_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -45,7 +45,7 @@ class StoryRepository:
     def de_seguidos(self, yo: int) -> list[dict]:
         """Stories vigentes de los seguidos aceptados, respetando mejores amigos (HU7, HU8)."""
         return self._filas(
-            f"""SELECT {COLUMNAS}, u.username, u.nombre FROM story st JOIN usuario u ON u.id = st.usuario_id
+            f"""SELECT {COLUMNAS}, u.username, u.nombre FROM story st JOIN usuario u ON u.id = st.usuario_id AND u.eliminado_en IS NULL
                 WHERE {VIGENTE} AND {PERMITE_MEJORES_AMIGOS}
                   AND st.usuario_id IN (SELECT seguido_id FROM seguidores WHERE seguidor_id = :yo AND estado = 'aceptado')
                 ORDER BY st.usuario_id, st.fecha_publicacion""", yo=yo)
@@ -72,7 +72,7 @@ class StoryRepository:
 
     def vistas(self, story_id: int, limit: int, offset: int) -> list[dict]:
         return self._filas(
-            """SELECT u.id, u.username, u.nombre, v.fecha FROM vistas_story v JOIN usuario u ON u.id = v.usuario_id
+            """SELECT u.id, u.username, u.nombre, v.fecha FROM vistas_story v JOIN usuario u ON u.id = v.usuario_id AND u.eliminado_en IS NULL
                WHERE v.story_id = :sid ORDER BY v.fecha DESC LIMIT :limit OFFSET :offset""",
             sid=story_id, limit=limit, offset=offset)
 
@@ -81,6 +81,6 @@ class StoryRepository:
         return self._filas(
             """SELECT h.nombre, count(*) AS cantidad_posts
                FROM hashtags_post hp JOIN hashtag h ON h.id = hp.hashtag_id
-               JOIN post p ON p.id = hp.post_id JOIN usuario u ON u.id = p.usuario_id
+               JOIN post p ON p.id = hp.post_id JOIN usuario u ON u.id = p.usuario_id AND u.eliminado_en IS NULL
                WHERE NOT u.es_privada AND p.fecha_publicacion > LOCALTIMESTAMP - INTERVAL '24 hours'
                GROUP BY h.nombre ORDER BY cantidad_posts DESC, h.nombre LIMIT 10""")

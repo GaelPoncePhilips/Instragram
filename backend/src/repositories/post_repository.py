@@ -1,4 +1,4 @@
-from sqlalchemy import text
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from src.db.models.comentario_model import Comentario
@@ -6,6 +6,7 @@ from src.db.models.hashtag_model import Hashtag
 from src.db.models.hashtag_post_model import HashtagPost
 from src.db.models.like_model import Like
 from src.db.models.post_model import Post
+from src.repositories.notificacion_repository import NotificacionRepository
 from src.repositories.sql import NO_BLOQUEADO_POR_DUENO, POST_COLUMNAS, POST_FROM, puede_ver, sin_bloqueo
 
 
@@ -36,6 +37,29 @@ class PostRepository:
         except Exception:
             self.db.rollback()
             raise
+
+    def editar_descripcion(self, post: Post, descripcion: str | None, hashtags: list[str]) -> None:
+        """Cambia la descripción y vuelve a sincronizar los hashtags en la misma transacción."""
+        try:
+            post.descripcion = descripcion
+            post.fecha_edicion = func.localtimestamp()
+            self.db.query(HashtagPost).filter(HashtagPost.post_id == post.id).delete()
+            for nombre in hashtags:
+                hashtag = self.db.query(Hashtag).filter(Hashtag.nombre == nombre).first()
+                if hashtag is None:
+                    hashtag = Hashtag(nombre=nombre)
+                    self.db.add(hashtag)
+                    self.db.flush()
+                self.db.add(HashtagPost(post_id=post.id, hashtag_id=hashtag.id))
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+
+    def editar_comentario(self, c: Comentario, texto: str) -> None:
+        c.texto = texto
+        c.fecha_edicion = func.localtimestamp()
+        self.db.commit()
 
     def buscar_por_id(self, post_id: int) -> Post | None:
         return self.db.get(Post, post_id)
@@ -102,7 +126,7 @@ class PostRepository:
                     ((SELECT count(*) FROM likes l WHERE l.post_id = p.id AND l.fecha > LOCALTIMESTAMP - INTERVAL '72 hours')
                      + 2 * (SELECT count(*) FROM comentario c WHERE c.post_id = p.id AND c.fecha > LOCALTIMESTAMP - INTERVAL '72 hours')
                     )::float AS popularidad
-                FROM post p JOIN usuario u ON u.id = p.usuario_id
+                FROM post p JOIN usuario u ON u.id = p.usuario_id AND u.eliminado_en IS NULL
                 WHERE p.usuario_id <> :yo
                   AND p.fecha_publicacion > LOCALTIMESTAMP - INTERVAL '7 days'
                   AND {visible}
@@ -128,7 +152,7 @@ class PostRepository:
                 CASE WHEN d.social > 0 THEN 'le gusta a cuentas que seguís'
                      WHEN d.contenido > 0 THEN 'por hashtags que te gustan'
                      ELSE 'popular' END AS motivo
-            FROM diversos d JOIN post p ON p.id = d.id JOIN usuario u ON u.id = p.usuario_id
+            FROM diversos d JOIN post p ON p.id = d.id JOIN usuario u ON u.id = p.usuario_id AND u.eliminado_en IS NULL
             WHERE d.n <= 2
             ORDER BY d.score DESC, p.fecha_publicacion DESC, p.id DESC
             LIMIT :limit OFFSET :offset""",
@@ -136,38 +160,44 @@ class PostRepository:
         )
 
     # ---------- likes (HU5)
-    def dar_like(self, usuario_id: int, post_id: int) -> None:
-        self.db.execute(
+    def dar_like(self, usuario_id: int, post: Post) -> None:
+        nuevo = self.db.execute(
             text("INSERT INTO likes (usuario_id, post_id) VALUES (:u, :p) ON CONFLICT DO NOTHING"),
-            {"u": usuario_id, "p": post_id},
-        )
+            {"u": usuario_id, "p": post.id},
+        ).rowcount
+        if nuevo:
+            NotificacionRepository(self.db).crear(post.usuario_id, usuario_id, "like", post_id=post.id)
         self.db.commit()
 
-    def quitar_like(self, usuario_id: int, post_id: int) -> None:
-        self.db.query(Like).filter(Like.usuario_id == usuario_id, Like.post_id == post_id).delete()
+    def quitar_like(self, usuario_id: int, post: Post) -> None:
+        self.db.query(Like).filter(Like.usuario_id == usuario_id, Like.post_id == post.id).delete()
+        NotificacionRepository(self.db).borrar(post.usuario_id, usuario_id, "like", post_id=post.id)
         self.db.commit()
 
     def usuarios_que_dieron_like(self, post_id: int, limit: int, offset: int) -> list[dict]:
         return self._filas(
             f"""SELECT u.id, u.username, u.nombre FROM likes l
-                JOIN usuario u ON u.id = l.usuario_id JOIN post p ON p.id = l.post_id
+                JOIN usuario u ON u.id = l.usuario_id AND u.eliminado_en IS NULL JOIN post p ON p.id = l.post_id
                 WHERE l.post_id = :pid AND {NO_BLOQUEADO_POR_DUENO('l.usuario_id')}
                 ORDER BY l.fecha DESC LIMIT :limit OFFSET :offset""",
             pid=post_id, limit=limit, offset=offset,
         )
 
     # ---------- comentarios (HU5)
-    def comentar(self, usuario_id: int, post_id: int, texto: str) -> Comentario:
-        c = Comentario(usuario_id=usuario_id, post_id=post_id, texto=texto)
+    def comentar(self, usuario_id: int, post: Post, texto: str) -> Comentario:
+        c = Comentario(usuario_id=usuario_id, post_id=post.id, texto=texto)
         self.db.add(c)
+        self.db.flush()
+        NotificacionRepository(self.db).crear(post.usuario_id, usuario_id, "comentario",
+                                              post_id=post.id, comentario_id=c.id)
         self.db.commit()
         self.db.refresh(c)
         return c
 
     def comentarios(self, post_id: int, limit: int, offset: int) -> list[dict]:
         return self._filas(
-            f"""SELECT c.id, c.post_id, c.usuario_id, u.username AS autor_username, c.texto, c.fecha
-                FROM comentario c JOIN usuario u ON u.id = c.usuario_id JOIN post p ON p.id = c.post_id
+            f"""SELECT c.id, c.post_id, c.usuario_id, u.username AS autor_username, c.texto, c.fecha, c.fecha_edicion
+                FROM comentario c JOIN usuario u ON u.id = c.usuario_id AND u.eliminado_en IS NULL JOIN post p ON p.id = c.post_id
                 WHERE c.post_id = :pid AND {NO_BLOQUEADO_POR_DUENO('c.usuario_id')}
                 ORDER BY c.fecha, c.id LIMIT :limit OFFSET :offset""",
             pid=post_id, limit=limit, offset=offset,
