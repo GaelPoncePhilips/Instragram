@@ -1,0 +1,28 @@
+from src.dtos.usuario_dto import UsuarioDTO
+from src.db.models.usuario import Usuario
+
+class UsuarioMapper:
+
+    @staticmethod
+    def to_dto(usuario: Usuario) -> UsuarioDTO:
+        return UsuarioDTO(
+            id=usuario.id,
+            username=usuario.username,
+            email=usuario.email,
+            password_hash=usuario.password_hash,
+            nombre=usuario.nombre,
+            bio=usuario.bio,
+            es_privada=usuario.es_privada,
+            fecha_registro=usuario.fecha_registro
+        )
+
+    @staticmethod
+    def to_model(dto: UsuarioDTO) -> Usuario:
+        return Usuario(
+            username=dto.username,
+            email=dto.email,
+            password_hash=dto.password_hash,
+            nombre=dto.nombre,
+            bio=dto.bio,
+            es_privada=dto.es_privada
+        )
