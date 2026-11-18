@@ -42,6 +42,18 @@ Contraseña de todas: `ronda123`. Email: username sin "." ni "_" + `@ronda.dev` 
 
 El mock vive en memoria: **recargar la página reinicia los datos** (la sesión se mantiene).
 
+## Instalar como app (PWA)
+
+```bash
+./run.sh --pwa      # build de producción + preview en :4173 (con service worker)
+```
+
+- **En la PC**: abrí http://localhost:4173 y usá "Instalar app" (Configuración, menú "Más" o el ícono de la barra del navegador).
+- **Android (Chrome)**: el service worker y el botón de instalar exigen **https** (o localhost). Por la IP de la red (`http://192.168…:4173`) Chrome no lo ofrece. Para probarlo:
+  - en el celular, abrí `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, agregá `http://<IP-de-tu-PC>:4173` y reiniciá Chrome;
+  - o exponé el puerto con un túnel https (cloudflared, ngrok) o publicá el build en un hosting con https.
+- **iPhone (Safari)**: Compartir → "Agregar a inicio" funciona también por http y abre a pantalla completa, aunque sin service worker.
+
 ## Estructura
 
 ```

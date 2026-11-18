@@ -2,6 +2,7 @@
 import type { Album, AlbumItem, CreateAlbumBody, CreateAlbumItemBody, Paginacion, UpdateAlbumBody } from '../types/api'
 import { api } from './client'
 import { conVideo, guardarVideo } from './temporal/albumVideo'
+import { enviarInvitacionPorDm } from './temporal/invitacionDm'
 
 /** POST /albums — body {titulo, descripcion?, portada_url?} → Album. El creador entra como admin aceptado */
 export const crearAlbum = (body: CreateAlbumBody) => api.post<Album>('/albums', body)
@@ -18,8 +19,15 @@ export const borrarAlbum = (id: number) => api.del(`/albums/${id}`)
 /** GET /usuarios/{id}/albums → Album[] donde {id} es miembro aceptado y que puedo ver */
 export const albumsDeUsuario = (id: number) => api.get<Album[]>(`/usuarios/${id}/albums`)
 
-/** POST /albums/{id}/invitaciones — body {usuario_id} → Album. Solo admin; 400 si hay bloqueo */
-export const invitar = (id: number, usuarioId: number) => api.post<Album>(`/albums/${id}/invitaciones`, { usuario_id: usuarioId })
+/**
+ * POST /albums/{id}/invitaciones — body {usuario_id} → Album. Solo admin; 400 si hay bloqueo.
+ * TEMPORAL (hueco 12): además manda un DM con la invitación (ver services/temporal/invitacionDm.ts).
+ */
+export const invitar = async (id: number, usuarioId: number) => {
+  const album = await api.post<Album>(`/albums/${id}/invitaciones`, { usuario_id: usuarioId })
+  await enviarInvitacionPorDm(album, usuarioId)
+  return album
+}
 
 /** GET /usuarios/{id}/invitaciones-album → Album[] con invitación pendiente. Solo dueño */
 export const invitacionesAlbum = (id: number) => api.get<Album[]>(`/usuarios/${id}/invitaciones-album`)

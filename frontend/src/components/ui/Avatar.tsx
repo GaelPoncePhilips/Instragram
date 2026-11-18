@@ -57,12 +57,25 @@ export function Avatar({ username, size = 32, anillo = 'ninguno', className, alt
   if (!ring) return <span className={cn('inline-block shrink-0 rounded-full', className)}>{inner}</span>
   return (
     <span
-      className={cn('inline-block shrink-0 rounded-full', className)}
+      className={cn('relative inline-block shrink-0 rounded-full', className)}
       style={{ padding: grosor, background: fondo }}
     >
       <span className="block rounded-full bg-surface" style={{ padding: grosor }}>
         {inner}
       </span>
+      {anillo === 'amigos' && size >= 40 && (
+        // Mejores amigos: corona sobre el anillo verde.
+        <span
+          className="absolute -top-1 left-1/2 flex -translate-x-1/2 items-center justify-center rounded-full bg-amigos text-white ring-2 ring-surface"
+          style={{ width: Math.round(size * 0.32), height: Math.round(size * 0.32) }}
+          aria-label="Mejores amigos"
+          role="img"
+        >
+          <span className="icon" data-fill="true" style={{ fontSize: Math.round(size * 0.22) }} aria-hidden="true">
+            crown
+          </span>
+        </span>
+      )}
     </span>
   )
 }

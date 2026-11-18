@@ -38,7 +38,7 @@ export function StoryPickGrid({
             </span>
             {s.solo_mejores_amigos && (
               <span className="absolute bottom-1.5 left-1.5 flex size-5 items-center justify-center rounded-full bg-amigos text-white">
-                <Icon name="star" fill size={14} />
+                <Icon name="crown" fill size={14} />
               </span>
             )}
             {seleccionable && (

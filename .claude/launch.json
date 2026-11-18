@@ -6,6 +6,12 @@
       "runtimeExecutable": "C:\\Users\\User\\.bun\\bin\\bun.exe",
       "runtimeArgs": ["run", "--cwd", "frontend", "dev", "--port", "5173", "--strictPort"],
       "port": 5173
+    },
+    {
+      "name": "ronda-pwa",
+      "runtimeExecutable": "C:\\Users\\User\\.bun\\bin\\bun.exe",
+      "runtimeArgs": ["run", "--cwd", "frontend", "preview", "--port", "4173", "--strictPort"],
+      "port": 4173
     }
   ]
 }

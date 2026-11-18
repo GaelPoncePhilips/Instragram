@@ -45,6 +45,7 @@ export function CreateStoryPage() {
         <Switch
           checked={amigos}
           onChange={setAmigos}
+          icon="crown"
           label="Solo mejores amigos"
           description="Solo la verán las personas de tu lista de mejores amigos"
         />

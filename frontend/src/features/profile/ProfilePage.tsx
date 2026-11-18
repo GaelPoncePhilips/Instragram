@@ -20,6 +20,7 @@ import { snackbar } from '../../stores/ui'
 import type { Perfil, Relacion } from '../../types/api'
 import { AlbumsTab } from '../albums/AlbumsTab'
 import { HighlightsRow } from '../highlights/HighlightsRow'
+import { ProfileFab } from './ProfileFab'
 import { ArchivoTab, PostsTab, ReelsTab } from './ProfileTabs'
 
 export type ProfileTab = 'publicaciones' | 'reels' | 'albumes' | 'archivo'
@@ -84,6 +85,7 @@ export function ProfilePage({ tab }: { tab: ProfileTab }) {
             {tabActual === 'albumes' && <AlbumsTab usuarioId={p.id} esPropio={esPropio} />}
             {tabActual === 'archivo' && <ArchivoTab usuarioId={p.id} onDestacada={() => setDestKey((k) => k + 1)} />}
           </div>
+          {esPropio && <ProfileFab tab={tabActual} />}
         </>
       )}
     </div>
@@ -207,18 +209,9 @@ function Encabezado({
     </button>
   )
 
+  // Perfil propio: "Editar perfil" vive en Configuración y crear va en el FAB de la esquina.
   const botones: ReactNode = esPropio ? (
-    <div className="flex items-center gap-2 max-md:w-full">
-      <ButtonGroup className="max-md:flex-1">
-        <Button variant="tonal" className="max-md:flex-1" onClick={() => navigate('/cuenta/editar')}>
-          Editar perfil
-        </Button>
-        <Button variant="tonal" className="max-md:flex-1" onClick={() => navigate('/crear/publicacion')}>
-          Nueva publicación
-        </Button>
-      </ButtonGroup>
-      {!isMobile && <IconButton icon="settings" label="Configuración" onClick={() => navigate('/cuenta/ajustes')} />}
-    </div>
+    isMobile ? null : <IconButton icon="settings" label="Configuración" onClick={() => navigate('/cuenta/ajustes')} />
   ) : (
     <div className="flex items-center gap-2 max-md:w-full">
       <ButtonGroup className="max-md:flex-1">

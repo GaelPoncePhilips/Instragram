@@ -31,4 +31,5 @@ export const temporal = {
   avatares: bool(e.VITE_TEMPORAL_AVATARES, true),
   guardados: bool(e.VITE_TEMPORAL_GUARDADOS, true),
   devCuentas: bool(e.VITE_TEMPORAL_DEV_CUENTAS, true),
+  dmInvitacion: bool(e.VITE_TEMPORAL_DM_INVITACION, true),
 } as const

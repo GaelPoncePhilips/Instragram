@@ -51,13 +51,6 @@ export function AlbumsTab({ usuarioId, esPropio }: { usuarioId: number; esPropio
 
   return (
     <div className="pt-3">
-      {esPropio && lista.length > 0 && (
-        <div className="mb-3 flex justify-end px-1">
-          <Button variant="tonal" size="sm" icon="add" onClick={() => navigate('/albumes/nuevo')}>
-            Nuevo álbum
-          </Button>
-        </div>
-      )}
       {lista.length === 0 ? (
         <EmptyState
           icon="photo_album"

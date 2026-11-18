@@ -205,6 +205,7 @@ button {
   transition-duration: var(--md-motion-effects-fast-duration, 150ms);
 }
 
+@layer components {
 /* Morph de forma: redondeado → cuadrado al presionar o seleccionar */
 .morph {
   transition-property: border-radius, background-color, color, transform;
@@ -226,6 +227,9 @@ button {
   border-radius: 16px;
 }
 
+}
+
+@layer components {
 /* State layers (M3): hover 8 %, focus/pressed 10 % del color del contenido */
 .state {
   position: relative;
@@ -271,6 +275,8 @@ button {
     transform: scale(1);
     opacity: 0;
   }
+}
+
 }
 
 /* Corazón del doble tap */
@@ -413,6 +419,7 @@ button {
   }
 }
 
+@layer components {
 /* Button group conectado (M3 Expressive): esquinas internas de 8px, externas redondas */
 .btn-group > .morph {
   border-radius: 8px;
@@ -429,4 +436,5 @@ button {
 .btn-group > .morph:active:not(:disabled),
 .btn-group > .morph[data-selected='true'] {
   border-radius: 12px;
+}
 }

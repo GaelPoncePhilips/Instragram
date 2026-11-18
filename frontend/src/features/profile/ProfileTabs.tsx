@@ -1,10 +1,9 @@
 /** Contenido de las pestañas del perfil: publicaciones, reels y archivo de stories. */
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { GridSkeleton, PostGrid } from '../../components/shared'
 import { Button } from '../../components/ui/Button'
 import { EmptyState, ErrorState } from '../../components/ui/Feedback'
-import { Icon } from '../../components/ui/Icon'
 import { Dialog } from '../../components/ui/Overlay'
 import { useAsync, useInfinite, useIsDesktop } from '../../lib/hooks'
 import * as postsApi from '../../services/posts'
@@ -41,17 +40,7 @@ export function PostsTab({ usuarioId, esPropio }: { usuarioId: number; esPropio:
       <EmptyState icon="photo_camera" title="Aún no hay publicaciones" />
     )
   }
-  const leading = esPropio ? (
-    <Link
-      to="/crear/publicacion"
-      aria-label="Nueva publicación"
-      className="state flex items-center justify-center rounded-xs bg-surface-container-high text-on-surface-variant"
-      style={{ aspectRatio: 'var(--grid-ratio)' }}
-    >
-      <Icon name="add" size={40} />
-    </Link>
-  ) : undefined
-  return <PostGrid posts={items} leading={leading} sentinelRef={done ? undefined : sentinelRef} linkState={linkState} />
+  return <PostGrid posts={items} sentinelRef={done ? undefined : sentinelRef} linkState={linkState} />
 }
 
 export function ReelsTab({ usuarioId, esPropio }: { usuarioId: number; esPropio: boolean }) {
@@ -62,20 +51,21 @@ export function ReelsTab({ usuarioId, esPropio }: { usuarioId: number; esPropio:
     [usuarioId],
     12,
   )
-  const boton = esPropio && (
-    <div className="flex justify-center py-3">
-      <Button variant="tonal" icon="movie" onClick={() => navigate('/crear/reel')}>
-        Nuevo reel
-      </Button>
-    </div>
-  )
   if (error && items.length === 0) return <ErrorState error={error} onRetry={reload} />
   if (loading && items.length === 0) return <GridSkeleton aspect="reel" />
   return (
     <>
-      {boton}
       {done && items.length === 0 ? (
-        <EmptyState icon="movie" title="Aún no hay reels" />
+        esPropio ? (
+          <EmptyState
+            icon="movie"
+            title="Compartí tu primer reel"
+            text="Los reels que publiques aparecen acá."
+            action={<Button onClick={() => navigate('/crear/reel')}>Nuevo reel</Button>}
+          />
+        ) : (
+          <EmptyState icon="movie" title="Aún no hay reels" />
+        )
       ) : (
         <PostGrid posts={items} aspect="reel" sentinelRef={done ? undefined : sentinelRef} linkState={linkState} />
       )}

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { albumDeInvitacion } from '../../services/temporal/invitacionDm'
 import { Link } from 'react-router'
 import { Avatar } from '../../components/ui/Avatar'
 import { CenteredLoader, EmptyState, ErrorState } from '../../components/ui/Feedback'
@@ -28,7 +29,7 @@ function Fila({ c, yoId, activa }: { c: Conversacion; yoId: number; activa: bool
   const sinLeer = c.no_leidos > 0
   let linea = 'Sin mensajes'
   if (um) {
-    const base = um.texto ?? 'Compartió una publicación'
+    const base = albumDeInvitacion(um.texto) !== null ? 'Invitación a un álbum compartido 📸' : (um.texto ?? 'Compartió una publicación')
     linea = um.emisor_id === yoId ? `Vos: ${base}` : base
   }
   return (

@@ -41,7 +41,7 @@ Descartado o tratado como no confirmado: el ancho de 470px del feed (viene de un
 | error | `#AC3149` | `#FD6F85` |
 
 - Superficies: blanco azulado, nunca crema. El feed va sobre `surface` sin tarjetas.
-- **Anillo de story**: sin ver = trazo cónico `primary → tertiary-container` (índigo → lima, nada de magenta-naranja); visto = `outline-variant`; mejores amigos = verde fijo `#1FAF5A` / `#4ADE80` (oscuro), como Instagram.
+- **Anillo de story**: sin ver = trazo cónico `primary → tertiary-container` (índigo → lima, nada de magenta-naranja); visto = `outline-variant`; mejores amigos = verde fijo `#1FAF5A` / `#4ADE80` (oscuro) **con una corona** (ícono `crown`) sobre el anillo. La corona identifica a mejores amigos en toda la app: fila de stories, visor, archivo, lista de mejores amigos y switch "Solo mejores amigos".
 - Like activo = `error` (rojo del esquema), como el corazón rojo de Instagram.
 
 ## 4. Tipografía
@@ -92,3 +92,11 @@ Grillas masonry/mosaico, tarjetas flotantes en el feed, estética de dashboard, 
 Agregados durante la construcción:
 - Indicadores de paso numerados en asistentes ("Paso 1 de 4"): se reemplazaron por una barra segmentada como las de stories.
 - Etiquetas con mayúsculas y monoespaciado para metadatos: los metadatos van en `type-body-s` con `on-surface-variant`.
+
+## 10. Cambios posteriores (pedido del 18/11/2026)
+
+- **Perfil propio**: sin botones arriba. "Editar perfil" pasa a Configuración (tarjeta al principio, con avatar). En la esquina inferior hay un **FAB extendido M3** que cambia según la pestaña: Nueva publicación / Nuevo reel / Nuevo álbum / Nueva story (en Archivo). Se contrae a solo ícono al bajar y se expande al subir.
+- **Destacadas**: se reordenan manteniendo presionada una (400 ms), que se levanta (escala 1,1 y sombra), y arrastrando. Al soltar se guarda el orden. El ⋯ sigue dando Editar / Eliminar.
+- **PWA**: manifest, íconos (192, 512 y maskable), `apple-touch-icon` y service worker propio, sin dependencias. Red primero para navegación, caché para assets y fuentes, stale-while-revalidate para imágenes y nada de caché para `/api` ni videos. Instalación desde Configuración o desde "Más".
+- **Capas CSS**: las clases propias (`state`, `morph`, `btn-group`) viven en `@layer components`. Fuera de una capa le ganaban a las utilidades de Tailwind: `.state { position: relative }` anulaba `fixed`/`absolute`.
+

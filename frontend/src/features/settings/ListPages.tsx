@@ -137,7 +137,7 @@ export function BestFriendsPage() {
     <Pantalla title="Mejores amigos">
       <div className="flex items-start gap-3 px-4 py-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amigos text-white">
-          <Icon name="star" fill />
+          <Icon name="crown" fill />
         </span>
         <p className="type-body-m text-on-surface-variant">
           Solo tus mejores amigos verán las stories que compartas con ellos. No le avisamos a nadie cuando lo agregás o lo quitás. Solo podés agregar a personas que te siguen.
@@ -179,7 +179,7 @@ export function BestFriendsPage() {
                         on ? 'border-amigos bg-amigos text-white' : 'border-outline',
                       )}
                     >
-                      {on && <Icon name="check" size={18} />}
+                      {on && <Icon name="crown" fill size={16} className="pop" />}
                     </button>
                   }
                 />

@@ -278,7 +278,7 @@ function Visor({ cola, onCerrar }: { cola: Cola; onCerrar: () => void }) {
             <span className="type-label-m text-white/75">{tiempoCorto(story.fecha_publicacion)}</span>
             {story.solo_mejores_amigos && (
               <span className="type-label-s flex items-center gap-1 rounded-full bg-amigos px-2 py-0.5 text-white">
-                <Icon name="star" fill size={12} />
+                <Icon name="crown" fill size={12} />
                 Mejores amigos
               </span>
             )}

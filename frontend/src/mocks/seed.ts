@@ -410,8 +410,11 @@ export function crearSeed(): Db {
   const c3 = conv(['ana.rios', 'gabi.cocina'], null, 24 * 40)
   msg(c3, 'gabi.cocina', 24 * 6, '¿Te paso la receta de los ñoquis?')
   msg(c3, 'ana.rios', 24 * 6 - 1, '¡Siii!')
+  // TEMPORAL (hueco 12): la invitación al álbum también llega por DM.
+  const origen = typeof window === 'undefined' ? '' : window.location.origin
+  msg(c3, 'gabi.cocina', 20, `📸 Te invité a «Cumple de Gabi 🎂», un álbum compartido. Sumate y subí tus fotos y videos: ${origen}/albumes/${cumple}`)
   leer(c3, 'ana.rios', 24 * 5)
-  leer(c3, 'gabi.cocina', 24 * 5)
+  leer(c3, 'gabi.cocina', 19)
 
   // Solicitudes de mensaje: Ana no sigue a fede_music ni a ines_lee.
   const c4 = conv(['fede_music', 'ana.rios'], null, 9, { 'ana.rios': 'solicitud' })

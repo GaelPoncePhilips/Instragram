@@ -4,6 +4,7 @@ import { Icon } from '../../components/ui/Icon'
 import { cn } from '../../lib/hooks'
 import { useSession } from '../../stores/session'
 import { useUi } from '../../stores/ui'
+import { usePwa } from '../../pwa'
 
 /** Menú "Más" de la barra lateral: cambiar usuario de desarrollo, ajustes, tema, cerrar sesión. */
 export function MoreMenu({ onClose, onSwitch }: { onClose: () => void; onSwitch: () => void }) {
@@ -11,6 +12,7 @@ export function MoreMenu({ onClose, onSwitch }: { onClose: () => void; onSwitch:
   const navigate = useNavigate()
   const logout = useSession((s) => s.logout)
   const { tema, setTema } = useUi()
+  const { instalable, instalar } = usePwa()
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose()
@@ -55,6 +57,7 @@ export function MoreMenu({ onClose, onSwitch }: { onClose: () => void; onSwitch:
         tema === 'oscuro' ? 'Modo claro' : 'Modo oscuro',
         () => setTema(tema === 'oscuro' ? 'claro' : 'oscuro'),
       )}
+      {instalable && item('install_desktop', 'Instalar app', () => void instalar())}
       <div className="my-1 h-px bg-outline-variant/60" />
       {item('logout', 'Cerrar sesión', () => {
         logout()

@@ -10,9 +10,11 @@ interface SwitchProps {
   label: string
   description?: string
   disabled?: boolean
+  /** Ícono del thumb cuando está activo (por defecto "check"). */
+  icon?: string
 }
 
-export function Switch({ checked, onChange, label, description, disabled }: SwitchProps) {
+export function Switch({ checked, onChange, label, description, disabled, icon = 'check' }: SwitchProps) {
   const id = useId()
   return (
     <label htmlFor={id} className={cn('flex items-center gap-4 py-3', disabled ? 'opacity-50' : 'cursor-pointer')}>
@@ -38,7 +40,7 @@ export function Switch({ checked, onChange, label, description, disabled }: Swit
             checked ? 'left-[22px] size-6 bg-on-primary text-on-primary-container' : 'left-[2px] size-6 bg-outline text-surface-container-highest',
           )}
         >
-          <Icon name={checked ? 'check' : 'close'} size={16} />
+          <Icon name={checked ? icon : 'close'} size={16} fill={checked && icon !== 'check'} />
         </span>
       </button>
     </label>

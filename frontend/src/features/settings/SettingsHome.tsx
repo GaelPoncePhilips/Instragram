@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { DevSwitcherDialog } from '../../app/layout/DevSwitcher'
 import { ScreenHeader } from '../../components/shared'
+import { Avatar } from '../../components/ui/Avatar'
 import { FilterChip, Switch } from '../../components/ui/Controls'
 import { Icon } from '../../components/ui/Icon'
 import { Confirm } from '../../components/ui/Overlay'
@@ -12,6 +13,7 @@ import * as usuariosApi from '../../services/usuarios'
 import { useSession, useYo } from '../../stores/session'
 import { snackbar, useUi } from '../../stores/ui'
 import type { UpdateUsuarioBody } from '../../types/api'
+import { esIOS, usePwa } from '../../pwa'
 
 function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
@@ -52,6 +54,7 @@ export function SettingsPage() {
   const [busy, setBusy] = useState(false)
   const pendientes = useAsync(() => usuariosApi.solicitudes(yo.id, { limit: 50 }).catch(() => []), [yo.id])
   const nPend = pendientes.data?.length ?? 0
+  const { instalable, instalada, instalar } = usePwa()
 
   const actualizar = async (body: UpdateUsuarioBody) => {
     setBusy(true)
@@ -69,6 +72,17 @@ export function SettingsPage() {
   return (
     <div className="mx-auto w-full max-w-[600px] pb-10">
       <ScreenHeader title="Configuración" onBack={() => navigate(`/${yo.username}`)} />
+      <Link to="/cuenta/editar" className="state mx-4 mt-4 flex items-center gap-4 rounded-lg bg-surface-container p-4">
+        <Avatar username={yo.username} size={56} />
+        <span className="min-w-0 flex-1">
+          <span className="type-title-m emphasized block truncate">{yo.nombre}</span>
+          <span className="type-body-m block truncate text-on-surface-variant">@{yo.username}</span>
+        </span>
+        <span className="inline-flex h-9 items-center gap-1.5 rounded-full bg-secondary-container px-4 text-on-secondary-container type-label-l">
+          <Icon name="edit" size={18} />
+          Editar perfil
+        </span>
+      </Link>
       <Seccion titulo="Privacidad de la cuenta">
         <div className="px-4">
           <Switch
@@ -105,9 +119,23 @@ export function SettingsPage() {
         />
       </Seccion>
       <Seccion titulo="Quién puede ver tu contenido">
-        <Fila icon="star" label="Mejores amigos" to="/cuenta/mejores-amigos" />
+        <Fila icon="crown" label="Mejores amigos" to="/cuenta/mejores-amigos" />
         <Fila icon="block" label="Cuentas bloqueadas" to="/cuenta/bloqueados" />
       </Seccion>
+      {!instalada && (
+        <Seccion titulo="App">
+          {instalable ? (
+            <Fila icon="install_mobile" label="Instalar Ronda en este dispositivo" onClick={() => void instalar()} />
+          ) : (
+            <p className="type-body-m flex items-start gap-4 px-4 py-3 text-on-surface-variant">
+              <Icon name="install_mobile" className="shrink-0" />
+              {esIOS()
+                ? 'Para instalarla: tocá Compartir y elegí "Agregar a inicio".'
+                : 'Para instalarla, abrí Ronda por https (o localhost) y usá "Instalar app" en el menú del navegador.'}
+            </p>
+          )}
+        </Seccion>
+      )}
       <Seccion titulo="Tema">
         <div className="flex flex-wrap gap-2 px-4 py-2">
           <FilterChip label="Claro" icon="light_mode" selected={tema === 'claro'} onClick={() => setTema('claro')} />

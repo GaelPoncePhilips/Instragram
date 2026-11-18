@@ -12,6 +12,7 @@ interface ImportMetaEnv {
   readonly VITE_TEMPORAL_AVATARES?: string
   readonly VITE_TEMPORAL_GUARDADOS?: string
   readonly VITE_TEMPORAL_DEV_CUENTAS?: string
+  readonly VITE_TEMPORAL_DM_INVITACION?: string
 }
 
 interface ImportMeta {

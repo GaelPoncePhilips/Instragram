@@ -3,6 +3,7 @@
 #
 #   ./run.sh          backend real + frontend contra el backend (vía proxy /api de Vite)
 #   ./run.sh --mock   solo el frontend con el backend simulado en memoria
+#   ./run.sh --pwa    build de producción del frontend (mock) servido en :4173, con service worker
 #
 # Funciona en Git Bash (Windows), macOS y Linux.
 set -euo pipefail
@@ -23,6 +24,13 @@ fi
 if [ ! -d "$FRONTEND/node_modules" ]; then
   echo "→ Instalando dependencias del frontend (bun install)…"
   (cd "$FRONTEND" && bun install)
+fi
+
+if [ "$MODO" = "--pwa" ]; then
+  echo "→ Build de producción (PWA con mock) en http://localhost:4173 (y la IP de tu red)"
+  cd "$FRONTEND"
+  bun run build
+  exec bun run preview
 fi
 
 if [ "$MODO" = "--mock" ]; then

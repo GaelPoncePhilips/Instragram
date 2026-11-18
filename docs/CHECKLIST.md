@@ -24,3 +24,10 @@ Estado contra el **mock** (`VITE_USE_MOCK=true`). Contra el backend real no se p
 | Álbumes compartidos | Verificado | Recorrido obligatorio completo en el navegador: crear (4 pasos) → invitar → cambiar a gabi → aceptar en la pestaña → subir → visible en los perfiles de ana y gabi, con notificaciones para ana. |
 | Responsive | Parcial | Verificado por DOM en 375, 768 y 1280 px: barra inferior, barra lateral de 72px, feed de 470px, grilla 1:1 y sin scroll horizontal. Inspección visual limitada porque las capturas del panel salían desactualizadas. 360 px no se midió aparte. |
 | Build / tsc / lint | Verificado | Los tres pasan. Lint deja warnings (no errores) en `src/lib/hooks.ts` y algunas páginas. |
+| Reordenar destacadas con mantener + arrastrar | Verificado | Pointer events simulados en el navegador: se levanta, cambia el orden, se guarda y el soltar no abre la destacada. Un tap normal la abre. Con el dedo en un dispositivo real no se probó. |
+| PWA | Verificado en localhost | Service worker activo, manifest válido (standalone) e íconos con 200. No probé la instalación en un celular: por http en la red local Chrome no la permite. |
+| Corona de mejores amigos | Verificado | Aparece en la fila de stories (eli.viaja, diego.mar), el visor, el archivo, la lista y el switch. |
+| Invitación a álbum por DM con CTA | Verificado | Invitar manda el DM. La tarjeta muestra Unirme / Ver, "Unirme" acepta y pasa a "Ya sos parte". |
+| FAB dinámico en el perfil propio | Verificado | Cambia por pestaña y no aparece en perfiles ajenos; fijo en la esquina, encima de la barra inferior. |
+| Editar perfil en Configuración | Verificado | Tarjeta al principio de Configuración; los botones de arriba del perfil propio ya no están. |
+
