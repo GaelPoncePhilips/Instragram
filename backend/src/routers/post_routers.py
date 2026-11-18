@@ -3,12 +3,12 @@ from sqlalchemy.orm import Session
 
 from src.db.connection import get_db
 from src.dtos.post_dto import PostDTO
-from src.repositories.post_repository import PostRepository
-from src.schemas.post_schema import (
+from src.repositories.post_repo import PostRepository
+from src.schemas.post_schemas import (
     PostCreateSchema,
     PostResponseSchema
 )
-from src.services.post_service import PostService
+from src.services.post_services import PostService
 
 router = APIRouter(tags=["posts"])
 
