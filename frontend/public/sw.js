@@ -1,10 +1,10 @@
-/* Service worker de Ronda (PWA). Sin dependencias.
+/* Service worker de Keepsy (PWA). Sin dependencias.
  * - App shell: navegaciones → red primero, con index.html en caché como respaldo offline.
  * - Assets del build (/assets/*), íconos y fuentes → caché primero (tienen hash o no cambian).
  * - Imágenes externas (picsum) → stale-while-revalidate con límite.
  * - API (/api) y videos → siempre red (no se cachean datos del usuario ni rangos de video).
  */
-const VERSION = 'ronda-v1'
+const VERSION = 'keepsy-v1'
 const SHELL = `${VERSION}-shell`
 const ASSETS = `${VERSION}-assets`
 const IMAGENES = `${VERSION}-img`

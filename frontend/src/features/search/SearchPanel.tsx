@@ -12,7 +12,7 @@ import { tendencias } from '../../services/posts'
 import { buscarUsuarios } from '../../services/temporal'
 import type { UsuarioResumen } from '../../types/api'
 
-const KEY_RECIENTES = 'ronda.busquedas.recientes'
+const KEY_RECIENTES = 'keepsy.busquedas.recientes'
 
 function leerRecientes(): UsuarioResumen[] {
   try {

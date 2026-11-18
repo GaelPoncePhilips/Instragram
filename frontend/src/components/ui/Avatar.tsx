@@ -23,7 +23,7 @@ export function Avatar({ username, size = 32, anillo = 'ninguno', className, alt
     anillo === 'sin-ver'
       ? 'conic-gradient(from 210deg, var(--md-sys-color-primary), var(--md-sys-color-tertiary-container), var(--md-sys-color-primary))'
       : anillo === 'amigos'
-        ? 'var(--ronda-amigos)'
+        ? 'var(--keepsy-amigos)'
         : anillo === 'visto'
           ? 'var(--md-sys-color-outline-variant)'
           : undefined

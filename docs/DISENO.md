@@ -1,4 +1,4 @@
-# Ronda — decisiones de diseño
+# Keepsy — decisiones de diseño
 
 Principio: **estructura = Instagram, piel = Material 3 Expressive**. Ante la duda, gana la solución de Instagram.
 Base: [`investigacion.md`](investigacion.md). Abajo, qué se verificó a mano, qué se descartó y qué se decidió.
@@ -16,7 +16,7 @@ Descartado o tratado como no confirmado: el ancho de 470px del feed (viene de un
 ## 2. Navegación (estructura Instagram, sin estilo M3)
 
 - **Móvil < 768px**: barra inferior de 5 íconos sin texto: Inicio `home`, Buscar `search`, Crear `add_box`, Reels `movie`, Perfil (avatar). Alto 50px + `env(safe-area-inset-bottom)`, fondo `surface`, borde superior 1px `outline-variant`, íconos 24px, área táctil 48px. Activo = `FILL 1`; Perfil activo = anillo de 2px `on-surface` alrededor del avatar. Sin píldora, sin etiquetas.
-- **Barra superior móvil**: wordmark "Ronda" a la izquierda; corazón (punto `error` si hay no leídas) y avión `send` con contador a la derecha. Solo en Inicio, como Instagram; las demás pantallas tienen su propia cabecera con "atrás".
+- **Barra superior móvil**: wordmark "Keepsy" a la izquierda; corazón (punto `error` si hay no leídas) y avión `send` con contador a la derecha. Solo en Inicio, como Instagram; las demás pantallas tienen su propia cabecera con "atrás".
 - **Tablet 768–1023px**: barra lateral de 72px solo con íconos (logo en vez de wordmark).
 - **Escritorio ≥ 1024px**: barra lateral de 244px: wordmark, Inicio, Buscar, Explorar, Reels, Mensajes (contador), Notificaciones (contador; abre panel deslizable de 397px), Crear, Perfil, y "Más" abajo (cambiar usuario dev, ajustes, tema, cerrar sesión). Activo = texto en negrita + ícono relleno.
 - Buscar en escritorio abre un panel deslizable igual que Notificaciones (como Instagram); en móvil es una pantalla.
@@ -99,4 +99,8 @@ Agregados durante la construcción:
 - **Destacadas**: se reordenan manteniendo presionada una (400 ms), que se levanta (escala 1,1 y sombra), y arrastrando. Al soltar se guarda el orden. El ⋯ sigue dando Editar / Eliminar.
 - **PWA**: manifest, íconos (192, 512 y maskable), `apple-touch-icon` y service worker propio, sin dependencias. Red primero para navegación, caché para assets y fuentes, stale-while-revalidate para imágenes y nada de caché para `/api` ni videos. Instalación desde Configuración o desde "Más".
 - **Capas CSS**: las clases propias (`state`, `morph`, `btn-group`) viven en `@layer components`. Fuera de una capa le ganaban a las utilidades de Tailwind: `.state { position: relative }` anulaba `fixed`/`absolute`.
+
+## 11. Nombre
+
+La app se llama **Keepsy** (antes "Ronda"); el nombre viene de *keepsake*, el recuerdo que se guarda. El logo no cambia: la forma "cookie" M3 con el anillo lima se lee como un momento guardado dentro de un círculo. El wordmark va en minúsculas ("keepsy"), Roboto Flex `wght 800`, `wdth 125`.
 

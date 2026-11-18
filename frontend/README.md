@@ -1,4 +1,4 @@
-# Ronda — frontend
+# Keepsy — frontend
 
 Red social con la estructura de Instagram y piel Material 3 Expressive. React 19 + TypeScript strict + Vite + React Router + Tailwind 4 + Zustand. Runtime y gestor de paquetes: **Bun**.
 
@@ -33,7 +33,7 @@ bun run preview             # sirve dist/ en :4173
 `vite.config.ts` tiene `server.host: true`. Con `bun run dev`, Vite muestra una línea `Network: http://<IP-de-tu-PC>:5173`. Abrila desde el celular conectado al mismo Wi-Fi. Si no carga, permití Bun/Node en el Firewall de Windows (o marcá la red como Privada).
 
 ### Cuentas de prueba (mock)
-Contraseña de todas: `ronda123`. Email: username sin "." ni "_" + `@ronda.dev` (p. ej. `anarios@ronda.dev`). En el login hay chips para rellenarlas, y en "Más → Cambiar usuario (dev)" o en Ajustes se cambia de cuenta sin recargar.
+Contraseña de todas: `keepsy123`. Email: username sin "." ni "_" + `@keepsy.dev` (p. ej. `anarios@keepsy.dev`). En el login hay chips para rellenarlas, y en "Más → Cambiar usuario (dev)" o en Ajustes se cambia de cuenta sin recargar.
 
 - `ana.rios`: privada; cuenta principal con solicitudes, invitación a álbum y DMs sin leer.
 - `ines_lee`: privada, Ana no la sigue → 403.
@@ -80,7 +80,7 @@ src/
    Si el front corre en otro origen, el backend tiene que habilitar CORS para `http://localhost:5173` (y para la IP de la red si probás desde el celular).
 3. Los **parches temporales siguen respondiendo desde el mock** aunque `VITE_USE_MOCK=false`: notificaciones, búsqueda de usuarios, usuario por id, videos en álbumes, avatares, guardados y cuentas de desarrollo. Con backend real, el mock identifica al usuario por su `username`.
 4. Cuando el backend implemente uno de esos endpoints, poné `VITE_TEMPORAL_<NOMBRE>=false` y seguí `docs/TEMPORAL.md` (raíz del repo) para saber qué borrar.
-5. Switcher de desarrollo: hace login real con las cuentas del seed. En el backend real hay que crear esos usuarios con la contraseña `ronda123`, o poner `VITE_TEMPORAL_DEV_CUENTAS=false`.
+5. Switcher de desarrollo: hace login real con las cuentas del seed. En el backend real hay que crear esos usuarios con la contraseña `keepsy123`, o poner `VITE_TEMPORAL_DEV_CUENTAS=false`.
 
 ## Documentación
 - `docs/API.md`: endpoints que usa el frontend (tablas y DTOs). El contrato fuente de verdad es `../docs/API.md`.

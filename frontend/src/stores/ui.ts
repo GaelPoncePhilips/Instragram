@@ -22,7 +22,7 @@ interface UiState {
   setTema: (t: Tema) => void
 }
 
-const TEMA_KEY = 'ronda.tema'
+const TEMA_KEY = 'keepsy.tema'
 function temaInicial(): Tema {
   try {
     const t = localStorage.getItem(TEMA_KEY)

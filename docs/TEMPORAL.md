@@ -84,8 +84,8 @@ No es un parche: las formas de respuesta se tomaron de los DTOs Pydantic (`backe
 ## 11. Cuentas de desarrollo del switcher
 
 - Flag: `VITE_TEMPORAL_DEV_CUENTAS`.
-- Qué es: el `DevSwitcher` (`src/app/layout/DevSwitcher.tsx`) permite cambiar de cuenta con las credenciales de prueba del seed del mock (`DEV_CUENTAS` en `src/mocks/seed.ts`; contraseña `ronda123`, email = username sin "." ni "_" + `@ronda.dev`).
-- Con backend real hay que crear esos usuarios con contraseña `ronda123` (seed del backend) o desactivar el flag (`VITE_TEMPORAL_DEV_CUENTAS=false`); nunca activarlo en producción.
+- Qué es: el `DevSwitcher` (`src/app/layout/DevSwitcher.tsx`) permite cambiar de cuenta con las credenciales de prueba del seed del mock (`DEV_CUENTAS` en `src/mocks/seed.ts`; contraseña `keepsy123`, email = username sin "." ni "_" + `@keepsy.dev`).
+- Con backend real hay que crear esos usuarios con contraseña `keepsy123` (seed del backend) o desactivar el flag (`VITE_TEMPORAL_DEV_CUENTAS=false`); nunca activarlo en producción.
 - Al implementar: borrar `cuentasDev` de `src/services/temporal/local.ts` y `DevSwitcher.tsx`.
 
 ## Agregados durante la construcción

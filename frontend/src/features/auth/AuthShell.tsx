@@ -7,7 +7,7 @@ export function AuthShell({ children, below }: { children: ReactNode; below: Rea
       <div className="w-full max-w-[350px] rounded-xs border-outline-variant sm:border sm:px-10 sm:pt-8 sm:pb-6">
         <div className="mb-6 flex flex-col items-center gap-2">
           <img src="/logo.svg" alt="" width={56} height={56} />
-          <span className="wordmark text-5xl">ronda</span>
+          <span className="wordmark text-5xl">keepsy</span>
         </div>
         {children}
       </div>

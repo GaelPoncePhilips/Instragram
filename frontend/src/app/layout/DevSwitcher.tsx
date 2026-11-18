@@ -75,7 +75,7 @@ export function DevSwitcherList({ onDone, compact }: { onDone?: () => void; comp
 export function DevSwitcherDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Dialog open={open} onClose={onClose} title="Cambiar de cuenta (desarrollo)" width={420}>
-      <p className="px-4 pt-3 pb-1 type-body-s text-on-surface-variant">Contraseña de todas las cuentas de prueba: ronda123</p>
+      <p className="px-4 pt-3 pb-1 type-body-s text-on-surface-variant">Contraseña de todas las cuentas de prueba: keepsy123</p>
       <DevSwitcherList onDone={onClose} />
     </Dialog>
   )

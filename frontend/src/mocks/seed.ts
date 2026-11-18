@@ -1,6 +1,6 @@
 /**
  * Datos semilla del mock. Todas las fechas son relativas a "ahora".
- * Contraseña de todas las cuentas: ronda123 (ver DEV_CUENTAS).
+ * Contraseña de todas las cuentas: keepsy123 (ver DEV_CUENTAS).
  * Imágenes: picsum.photos con seeds fijos. Videos de uso libre:
  *  - Big Buck Bunny y Sintel (Blender Foundation, CC BY) servidos por test-videos.co.uk
  *  - Jellyfish (test-videos.co.uk, libre para pruebas)
@@ -9,7 +9,7 @@
 import type { Db, DbPost, DbUsuario } from './db'
 import { addHours, emptyDb, hoursAgo, nextId } from './db'
 
-export const PASSWORD_DEMO = 'ronda123'
+export const PASSWORD_DEMO = 'keepsy123'
 
 export const VIDEOS = {
   bunny: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_2MB.mp4',
@@ -55,7 +55,7 @@ const USUARIOS: U[] = [
 export const DEV_CUENTAS = USUARIOS.map(([username, nombre, , privada]) => ({
   username,
   nombre,
-  email: `${username.replace(/[._]/g, '')}@ronda.dev`,
+  email: `${username.replace(/[._]/g, '')}@keepsy.dev`,
   password: PASSWORD_DEMO,
   privada,
 }))

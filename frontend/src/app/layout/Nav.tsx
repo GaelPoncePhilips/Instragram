@@ -11,11 +11,11 @@ import { MoreMenu } from './MoreMenu'
 import { activoDesdeRuta, DESKTOP_ITEMS, ICONOS, LABELS, MOBILE_TABS, RUTAS, type NavId } from './navItems'
 
 function Wordmark({ className }: { className?: string }) {
-  return <span className={cn('wordmark text-[28px] leading-none text-on-surface', className)}>ronda</span>
+  return <span className={cn('wordmark text-[28px] leading-none text-on-surface', className)}>keepsy</span>
 }
 
 export function Logo({ size = 28 }: { size?: number }) {
-  return <img src="/logo.svg" alt="Ronda" width={size} height={size} />
+  return <img src="/logo.svg" alt="Keepsy" width={size} height={size} />
 }
 
 /**
@@ -73,7 +73,7 @@ export function MobileTopBar() {
   const msgs = useBadges((s) => s.mensajes)
   return (
     <header className="sticky top-0 z-20 flex h-[60px] items-center justify-between border-b border-outline-variant/40 bg-surface px-4 md:hidden">
-      <Link to="/" aria-label="Ronda, inicio" className="flex items-center gap-2">
+      <Link to="/" aria-label="Keepsy, inicio" className="flex items-center gap-2">
         <Wordmark />
       </Link>
       <div className="flex items-center gap-1">
@@ -131,7 +131,7 @@ export function SideNav() {
         colapsada ? 'w-[var(--sidebar-w-collapsed)]' : 'w-[var(--sidebar-w-collapsed)] lg:w-[var(--sidebar-w)]',
       )}
     >
-      <Link to="/" onClick={() => setPanel(null)} aria-label="Ronda, inicio" className="mb-6 flex h-12 items-center px-3">
+      <Link to="/" onClick={() => setPanel(null)} aria-label="Keepsy, inicio" className="mb-6 flex h-12 items-center px-3">
         <span className={cn('hidden', !colapsada && 'lg:inline')}>
           <Wordmark />
         </span>

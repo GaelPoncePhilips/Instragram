@@ -125,13 +125,13 @@ export function SettingsPage() {
       {!instalada && (
         <Seccion titulo="App">
           {instalable ? (
-            <Fila icon="install_mobile" label="Instalar Ronda en este dispositivo" onClick={() => void instalar()} />
+            <Fila icon="install_mobile" label="Instalar Keepsy en este dispositivo" onClick={() => void instalar()} />
           ) : (
             <p className="type-body-m flex items-start gap-4 px-4 py-3 text-on-surface-variant">
               <Icon name="install_mobile" className="shrink-0" />
               {esIOS()
                 ? 'Para instalarla: tocá Compartir y elegí "Agregar a inicio".'
-                : 'Para instalarla, abrí Ronda por https (o localhost) y usá "Instalar app" en el menú del navegador.'}
+                : 'Para instalarla, abrí Keepsy por https (o localhost) y usá "Instalar app" en el menú del navegador.'}
             </p>
           )}
         </Seccion>

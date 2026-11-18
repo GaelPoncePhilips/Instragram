@@ -4,7 +4,7 @@
 import { temporal } from '../../config/env'
 import type { AlbumItem, CreateAlbumItemBody } from '../../types/api'
 
-const KEY = 'ronda.temporal.albumVideo'
+const KEY = 'keepsy.temporal.albumVideo'
 
 function leer(): Record<string, string> {
   try {

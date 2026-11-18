@@ -1,4 +1,4 @@
-# Guía para agentes — frontend de Ronda
+# Guía para agentes — frontend de Keepsy
 
 App: red social con **estructura de Instagram** y **piel Material 3 Expressive**. Si dudás entre una solución original y la de Instagram, elegí la de Instagram. Español rioplatense en la UI ("Seguir", "Añade un comentario…", "Ver los N comentarios").
 
@@ -30,4 +30,4 @@ Masonry/mosaico, tarjetas flotantes en el feed (el post va plano sobre `surface`
 Cualquier parche que inventes: marcado `// TEMPORAL`, aislado en `src/services/temporal/` o `src/mocks/temporal/`, con flag `VITE_TEMPORAL_<NOMBRE>` en `src/config/env.ts`, y avisalo en tu reporte final para documentarlo en `docs/TEMPORAL.md`. Los que ya existen están en `src/services/temporal/` (notificaciones, búsqueda, usuarioPorId, avatar, guardados, subida de archivos, cuentas dev).
 
 ## Datos de prueba (mock en memoria, se reinicia al recargar)
-Contraseña de todos: `ronda123`. Emails: username sin "." ni "_" + `@ronda.dev` (ej. `anarios@ronda.dev`). `ana.rios` (privada, usuario principal), `bruno.dev`, `carla_foto` (privada), `diego.mar`, `eli.viaja`, `fede_music` (privada), `gabi.cocina`, `hugo.art`, `ines_lee` (privada, Ana no la sigue → 403), `juli.run` (reels desactivados), `kike.troll` (bloqueado por Ana → 404).
+Contraseña de todos: `keepsy123`. Emails: username sin "." ni "_" + `@keepsy.dev` (ej. `anarios@keepsy.dev`). `ana.rios` (privada, usuario principal), `bruno.dev`, `carla_foto` (privada), `diego.mar`, `eli.viaja`, `fede_music` (privada), `gabi.cocina`, `hugo.art`, `ines_lee` (privada, Ana no la sigue → 403), `juli.run` (reels desactivados), `kike.troll` (bloqueado por Ana → 404).

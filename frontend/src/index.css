@@ -34,7 +34,7 @@
   --color-inverse-on-surface: var(--md-sys-color-inverse-on-surface);
   --color-inverse-primary: var(--md-sys-color-inverse-primary);
   --color-scrim: var(--md-sys-color-scrim);
-  --color-amigos: var(--ronda-amigos);
+  --color-amigos: var(--keepsy-amigos);
 
   /* Escala de esquinas M3 (Shape.md) */
   --radius-none: 0px;
@@ -52,7 +52,7 @@
 }
 
 :root {
-  --ronda-amigos: #1faf5a;
+  --keepsy-amigos: #1faf5a;
   --nav-h: 50px;
   --feed-w: 470px;
   --grid-ratio: 1 / 1;
@@ -62,11 +62,11 @@
   --panel-w: 397px;
 }
 :root[data-tema='oscuro'] {
-  --ronda-amigos: #4ade80;
+  --keepsy-amigos: #4ade80;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-tema='claro']) {
-    --ronda-amigos: #4ade80;
+    --keepsy-amigos: #4ade80;
   }
 }
 @media (max-width: 767px) {

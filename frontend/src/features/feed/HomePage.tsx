@@ -131,7 +131,7 @@ export function HomePage() {
           <div className="pb-8">
             <EmptyState
               icon="group_add"
-              title="Te damos la bienvenida a Ronda"
+              title="Te damos la bienvenida a Keepsy"
               text="Seguí a personas para ver sus fotos y videos en tu inicio."
             />
             <h2 className="type-title-s emphasized px-4 pt-2 pb-1">Sugerencias para ti</h2>

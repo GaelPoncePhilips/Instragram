@@ -10,7 +10,7 @@ export function avatarUrl(username: string): string | null {
 }
 
 // ---------- Hueco 10: guardar posts (sin endpoint)
-const KEY_GUARDADOS = 'ronda.temporal.guardados'
+const KEY_GUARDADOS = 'keepsy.temporal.guardados'
 function leerGuardados(): number[] {
   try {
     const raw = localStorage.getItem(KEY_GUARDADOS)

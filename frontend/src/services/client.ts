@@ -20,7 +20,7 @@ export class ApiError extends Error implements ApiErrorBody {
   }
 }
 
-const TOKEN_KEY = 'ronda.token'
+const TOKEN_KEY = 'keepsy.token'
 
 let token: string | null = (() => {
   try {
