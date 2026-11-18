@@ -18,6 +18,7 @@ CREATE TABLE Usuario (
     nombre         VARCHAR(100) NOT NULL,
     bio            VARCHAR(255),
     es_privada     BOOLEAN   NOT NULL DEFAULT FALSE,
+    reels_desactivados BOOLEAN NOT NULL DEFAULT FALSE,      -- EXTRA: no ver reels
     fecha_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -25,10 +26,16 @@ CREATE TABLE Usuario (
 CREATE TABLE Post (
     id                SERIAL PRIMARY KEY,
     usuario_id        INT NOT NULL REFERENCES Usuario(id) ON DELETE CASCADE,
-    url_imagen        VARCHAR NOT NULL,
+    url_imagen        VARCHAR NOT NULL,                   -- en un reel es la portada
     descripcion       VARCHAR(2200),
-    fecha_publicacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    fecha_publicacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    tipo              VARCHAR(5) NOT NULL DEFAULT 'foto' CHECK (tipo IN ('foto', 'reel')), -- EXTRA
+    url_video         VARCHAR,                            -- EXTRA: solo reels
+    duracion_seg      INT CHECK (duracion_seg > 0),       -- EXTRA: solo reels
+    CHECK ((tipo = 'reel') = (url_video IS NOT NULL))
 );
+CREATE INDEX idx_post_usuario_fecha ON Post (usuario_id, fecha_publicacion DESC);
+CREATE INDEX idx_post_tipo_fecha ON Post (tipo, fecha_publicacion DESC);
 
 -- HU5
 CREATE TABLE Comentario (
@@ -38,6 +45,7 @@ CREATE TABLE Comentario (
     texto      VARCHAR(300) NOT NULL CHECK (length(trim(texto)) > 0),
     fecha      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_comentario_post ON Comentario (post_id, fecha);
 
 -- HU7
 CREATE TABLE Story (
@@ -50,6 +58,7 @@ CREATE TABLE Story (
     CHECK (fecha_vencimiento > fecha_publicacion),
     UNIQUE (id, usuario_id)                               -- para FK compuesta de destacada_story
 );
+CREATE INDEX idx_story_usuario_venc ON Story (usuario_id, fecha_vencimiento);
 
 -- HU2 / HU11
 CREATE TABLE Hashtag (
@@ -80,6 +89,7 @@ CREATE TABLE seguidores (
     PRIMARY KEY (seguidor_id, seguido_id),
     CHECK (seguidor_id <> seguido_id)
 );
+CREATE INDEX idx_seguidores_seguido ON seguidores (seguido_id, estado);
 
 -- HU5
 CREATE TABLE likes (
@@ -88,6 +98,7 @@ CREATE TABLE likes (
     fecha      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (usuario_id, post_id)
 );
+CREATE INDEX idx_likes_post ON likes (post_id);
 
 -- HU2 / HU11
 CREATE TABLE hashtags_post (
@@ -95,6 +106,7 @@ CREATE TABLE hashtags_post (
     hashtag_id INT NOT NULL REFERENCES Hashtag(id) ON DELETE CASCADE,
     PRIMARY KEY (post_id, hashtag_id)
 );
+CREATE INDEX idx_hashtags_post_hashtag ON hashtags_post (hashtag_id);
 
 -- HU9
 CREATE TABLE vistas_story (
@@ -161,6 +173,7 @@ CREATE TABLE album_miembro (
     fecha      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (album_id, usuario_id)
 );
+CREATE INDEX idx_album_miembro_usuario ON album_miembro (usuario_id, estado);
 
 CREATE TABLE album_item (
     id          SERIAL PRIMARY KEY,
@@ -170,3 +183,35 @@ CREATE TABLE album_item (
     descripcion VARCHAR(500),
     fecha       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_album_item_album_fecha ON album_item (album_id, fecha DESC);
+-- ---------------------------------------------------------------------
+-- EXTRA: DMs
+-- ---------------------------------------------------------------------
+
+CREATE TABLE Conversacion (
+    id             SERIAL PRIMARY KEY,
+    es_grupal      BOOLEAN   NOT NULL DEFAULT FALSE,
+    nombre         VARCHAR(60),                           -- solo grupales
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE conversacion_participante (
+    conversacion_id INT NOT NULL REFERENCES Conversacion(id) ON DELETE CASCADE,
+    usuario_id      INT NOT NULL REFERENCES Usuario(id)      ON DELETE CASCADE,
+    estado          VARCHAR(10) NOT NULL DEFAULT 'aceptada' CHECK (estado IN ('solicitud', 'aceptada')),
+    ultima_lectura  TIMESTAMP,
+    fecha_ingreso   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (conversacion_id, usuario_id)
+);
+CREATE INDEX idx_conv_participante_usuario ON conversacion_participante (usuario_id, estado);
+
+CREATE TABLE Mensaje (
+    id              SERIAL PRIMARY KEY,
+    conversacion_id INT NOT NULL REFERENCES Conversacion(id) ON DELETE CASCADE,
+    emisor_id       INT NOT NULL REFERENCES Usuario(id)      ON DELETE CASCADE,
+    texto           VARCHAR(1000),
+    post_id         INT REFERENCES Post(id) ON DELETE SET NULL,   -- post compartido
+    fecha           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK (texto IS NOT NULL OR post_id IS NOT NULL)
+);
+CREATE INDEX idx_mensaje_conv_fecha ON Mensaje (conversacion_id, id DESC);

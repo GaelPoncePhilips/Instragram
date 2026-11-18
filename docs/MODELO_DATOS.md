@@ -24,6 +24,10 @@ erDiagram
     Album ||--o{ album_miembro : "tiene (EXTRA)"
     Usuario ||--o{ album_miembro : "participa (EXTRA)"
     Album ||--o{ album_item : "contiene (EXTRA)"
+    Conversacion ||--o{ conversacion_participante : "tiene (EXTRA)"
+    Usuario ||--o{ conversacion_participante : "participa (EXTRA)"
+    Conversacion ||--o{ Mensaje : "contiene (EXTRA)"
+    Usuario ||--o{ Mensaje : "envía (EXTRA)"
     Usuario ||--o{ album_item : "sube (EXTRA)"
 ```
 
@@ -68,15 +72,32 @@ erDiagram
 | `album_miembro` | Participantes. `rol` ∈ `admin`, `miembro`; `estado` ∈ `pendiente`, `aceptado` (invitación). |
 | `album_item` | Fotos subidas al álbum por cualquier miembro aceptado. |
 
-- `album_item` es independiente de `Post`: lo subido a un álbum no aparece en el perfil, el feed ni los hashtags. Solo lo ven los miembros.
+- `album_item` es independiente de `Post`: lo subido a un álbum no aparece en el perfil, el feed ni los hashtags.
+- **Visibilidad:** lo ven los miembros `aceptado` y los seguidores `aceptado` de cualquier miembro `aceptado` (salvo bloqueo con el creador). Solo los miembros suben items.
 
 Reglas del service:
 
 - El creador entra como `admin` con estado `aceptado`.
-- Solo los miembros `aceptado` ven el álbum y suben items.
+- Solo los miembros `aceptado` suben items.
 - Invitar crea una fila `pendiente`; el invitado acepta o rechaza. No se puede invitar a alguien con quien existe un `Bloqueo` en cualquier sentido.
 - Borra un item su autor o un admin. Solo un admin quita miembros o borra el álbum.
 - Si el último admin se va, el rol pasa al miembro más antiguo.
+
+## EXTRA: Reels
+
+Un reel es un `Post` con `tipo = 'reel'` y `url_video` obligatorio (`url_imagen` es la portada). Así comparte likes, comentarios, hashtags, feed y estadísticas sin tablas duplicadas. La base garantiza `tipo = 'reel'` ⇔ `url_video IS NOT NULL`.
+
+`Usuario.reels_desactivados = true` saca los reels del feed y del explorar de ese usuario.
+
+## EXTRA: DMs
+
+| Tabla | Descripción |
+|---|---|
+| `Conversacion` | 1 a 1 o grupal (`es_grupal`, `nombre`). |
+| `conversacion_participante` | `estado` ∈ `solicitud`, `aceptada`; `ultima_lectura` para contar no leídos. |
+| `Mensaje` | `texto` y/o `post_id` (post compartido; si se borra el post queda `NULL`). |
+
+Reglas del service: una conversación 1 a 1 por par; si el destinatario no sigue al emisor entra como `solicitud`; con bloqueo no se puede escribir; compartir un post respeta su privacidad.
 
 ## Reglas que no están en la base (van en los services)
 
@@ -97,3 +118,5 @@ Reglas del service:
 createdb instagram
 psql instagram -f backend/src/db/tables.sql
 ```
+
+Una base creada con la versión anterior del script se actualiza con `backend/src/db/migrations/001_indices_reels_dms.sql`.

@@ -26,3 +26,8 @@ class ForbiddenError(AppError):
 class ConflictError(AppError):
     status_code = 409
     message = "Conflict"
+
+
+class BadRequestError(AppError):
+    status_code = 400
+    message = "Bad request"
