@@ -1,43 +1,78 @@
 # Algoritmo de recomendaciones
 
-Para qué: `GET /usuarios/{id}/explorar` (posts), `/reels/feed` (reels) y `/sugerencias` (cuentas).
+Implementado: **híbrido + colaborativo con decaimiento temporal**, con las categorías **intercaladas**.
 
-## Opciones
+| Endpoint | Qué usa |
+|---|---|
+| `GET /usuarios/{id}/feed?modo=recomendado` | Mezcla intercalada (todas las categorías) |
+| `GET /usuarios/{id}/reels/feed` | La misma mezcla, solo reels |
+| `GET /usuarios/{id}/explorar` | Solo descubrimiento: interés, interés, popular, … |
+| `GET /usuarios/{id}/sugerencias` | Grafo social + un poco de popularidad |
+| `GET /usuarios/{id}/feed` (default `cronologico`) | Sin algoritmo: lo que pide la HU6 |
 
-| # | Enfoque | Cómo funciona | A favor | En contra |
+Código: `repositories/recomendacion_repository.py` (consultas), `services/recomendacion_service.py` (intercalado),
+`jobs/recalcular_afinidad.py` (señal colaborativa).
+
+## Categorías
+
+| Categoría | Quién | Ventana | Decaimiento | Score (normalizado 0–1 en cada señal) |
 |---|---|---|---|---|
-| 1 | **Popularidad** | Ranking por likes/comentarios recientes con decaimiento por antigüedad (`score / (horas + 2)^1.5`) | Una sola query SQL, funciona sin historial | Igual para todos, no personaliza |
-| 2 | **Por contenido (hashtags)** | Perfil del usuario = hashtags de los posts que likeó; se recomiendan posts con hashtags parecidos | Personaliza, explicable ("porque te gusta #futbol") | Depende de que la gente use hashtags; burbuja |
-| 3 | **Grafo social** | "Amigos de amigos": lo que likean/siguen las cuentas que vos seguís | Muy relevante en una red social, SQL puro | Usuario nuevo sin seguidos → vacío |
-| 4 | **Filtrado colaborativo** | "Usuarios que likearon lo mismo que vos también likearon…" (matriz usuario×post, similitud coseno o factorización) | El más preciso con muchos datos | Necesita volumen, cómputo offline, difícil de explicar y depurar |
-| 5 | **Embeddings / ML** | Vectores de imagen/texto (CLIP, etc.) + búsqueda por similitud (pgvector) | Entiende el contenido real de la foto | Infraestructura, modelos, costo; excesivo para el proyecto |
-| 6 | **Híbrido ponderado** | Combina 1 + 2 + 3 en un score con pesos | Lo mejor de cada uno, se ajustan pesos | Hay que calibrar pesos |
+| **amigo** | Cuentas que sigo y me siguen | **36 h** | fuerte `(h+2)^1.8` | `1 + 2·afinidad_con_autor + 0.5·popularidad` |
+| **cercano** ("familia") | Cuentas en mi lista de mejores amigos | **36 h** | fuerte `(h+2)^1.8` | igual que amigo |
+| **popular** (celebridad) | Cuentas que sigo y no me siguen; después, populares públicas que no sigo | 72 h | medio `(h+2)^1.3` | `0.1 + 0.7·popularidad + 0.3·afinidad_con_autor` |
+| **interés** | Cuentas públicas que no sigo, posts que no likeé | 7 días | suave `(h+2)^1.2` | `0.40·colaborativo + 0.30·hashtags + 0.15·likes_de_seguidos + 0.15·popularidad` |
 
-## Recomendación: híbrido ponderado (1 + 2 + 3) en SQL
+- `afinidad_con_autor`: mis likes + comentarios a ese autor en los últimos 30 días (peso del grafo social).
+- `popularidad`: likes + 2·comentarios de las últimas 72 h.
+- `colaborativo`: suma de la similitud de los usuarios parecidos a mí que likearon el post.
+- `hashtags`: cuánto likeé esos hashtags en los últimos 30 días.
+- Interés y popular de descubrimiento: máximo 2 posts por autor.
+- Siempre se excluyen cuentas privadas que no sigo, bloqueos en cualquier sentido y cuentas borradas.
 
-Es lo que mejor encaja con este proyecto porque:
+**Conocidos con prioridad y ventana corta**: un post de un amigo de hace 37 h ya no aparece, aunque tenga muchos likes.
 
-- **Ya tenemos los datos**: `likes`, `seguidores`, `hashtags_post` y `comentario` alcanzan; no hace falta trackear nada nuevo.
-- **Todo en PostgreSQL**: una query con CTEs; sin servicios extra, sin entrenar modelos.
-- **Arranque en frío resuelto**: un usuario nuevo sin likes ni seguidos recibe la parte de popularidad.
-- **Explicable y testeable**: cada post trae el motivo (`"popular"`, `"#viajes"`, `"le gusta a @ana"`).
-- **Respeta las reglas** fácilmente en el `WHERE`: solo cuentas públicas que no sigo, sin bloqueos, sin mis posts, sin reels si `reels_desactivados`.
+## Intercalado
 
-El filtrado colaborativo (4) queda como mejora futura si el volumen crece; no vale la pena con pocos usuarios.
-
-### Score por post candidato
+Cada categoría se ordena por su score y después se toman en el patrón:
 
 ```
-score = 0.40 * social      -- cuántos de mis seguidos likearon el post (normalizado)
-      + 0.35 * contenido   -- afinidad: suma de mis pesos en los hashtags del post
-      + 0.25 * popularidad -- (likes + 2*comentarios) de las últimas 72 h
-score_final = score / (horas_desde_publicacion + 2) ^ 1.2
+amigo → interés → cercano → celebridad → amigo → interés → …
 ```
 
-- Candidatos: posts de los últimos 7 días, de cuentas **públicas**, que no sigo, sin `Bloqueo` en ningún sentido y que no likeé todavía.
-- Afinidad por hashtag: likes que di en los últimos 30 días a posts con ese hashtag.
-- Diversidad: como mucho 2 posts por autor por página (`ROW_NUMBER() OVER (PARTITION BY usuario_id)`).
-- **Reels**: mismo score filtrando `tipo = 'reel'`.
-- **Sugerencias de cuentas**: cantidad de seguidos míos que siguen a esa cuenta (amigos en común) + afinidad de hashtags de sus posts; excluye bloqueos, ya seguidos y pendientes.
+Si una categoría no tiene más posts, se saltea; un post nunca aparece dos veces. La paginación
+(`limit`/`offset`) se aplica sobre la mezcla, así que las páginas son consistentes.
 
-Índices que ya cubren estas queries: `idx_likes_post`, `idx_hashtags_post_hashtag`, `idx_post_tipo_fecha`, `idx_seguidores_seguido`.
+## Señal colaborativa
+
+`afinidad_usuario` guarda, para cada usuario, sus 50 usuarios más parecidos:
+
+```
+similitud(A, B) = likes en común / sqrt(likes de A · likes de B)      (últimos 30 días, mínimo 2 en común)
+```
+
+Se precalcula porque comparar todos contra todos en cada request es caro. Hay que correrlo periódicamente:
+
+```bash
+python -m src.jobs.recalcular_afinidad       # por ejemplo, con cron cada 1 h
+```
+
+Con usuarios generados en masa conviene correrlo después de cargar los datos de prueba.
+
+## Personas a seguir
+
+```
+score = 3·seguidos_en_común + 2·(me sigue) + 0.5·ln(1 + seguidores)
+```
+
+Solo grafo social y un poco de popularidad; excluye a quien ya sigo, solicitudes pendientes, bloqueos y cuentas borradas.
+
+## Ajustar
+
+Las ventanas y exponentes están en las constantes `CONOCIDOS`, `POPULARES` e `INTERES` de
+`recomendacion_repository.py`; el patrón, en `PATRON_FEED` / `PATRON_EXPLORAR` del service.
+
+## Alternativas que se evaluaron
+
+Popularidad sola (igual para todos), solo hashtags (depende de que se usen), solo grafo social (vacío para
+usuarios nuevos), solo colaborativo (necesita volumen), embeddings con ML (infraestructura excesiva).
+El híbrido combina las señales y la parte de popularidad cubre a los usuarios nuevos.

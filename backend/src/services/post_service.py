@@ -77,15 +77,6 @@ class PostService:
         filas = self.repo.feed(actual.id, actual.reels_desactivados, limit, offset)
         return [PostDetalleDTO(**f) for f in filas]
 
-    def explorar(self, actual: Usuario, limit: int, offset: int):
-        filas = self.repo.recomendados(actual.id, None, actual.reels_desactivados, False, limit, offset)
-        return [PostDetalleDTO(**f) for f in filas]
-
-    def feed_reels(self, actual: Usuario, limit: int, offset: int):
-        if actual.reels_desactivados:
-            raise ForbiddenError("Tenés los reels desactivados")
-        return [PostDetalleDTO(**f) for f in self.repo.recomendados(actual.id, "reel", False, True, limit, offset)]
-
     def por_hashtag(self, nombre: str, yo: int, limit: int, offset: int):
         return [PostDetalleDTO(**f) for f in self.repo.por_hashtag(nombre.lstrip("#").lower(), yo, limit, offset)]
 

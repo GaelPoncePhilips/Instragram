@@ -79,7 +79,7 @@ class SeguidorRepository:
             uid=usuario_id, limit=limit, offset=offset)
 
     def sugerencias(self, yo: int, limit: int, offset: int) -> list[dict]:
-        """Cuentas para seguir: amigos en común, si me sigue y popularidad (docs/RECOMENDACIONES.md)."""
+        """Cuentas para seguir: grafo social (seguidos en común, si me sigue) y un poco de popularidad."""
         return self._usuarios(
             f"""SELECT id, username, nombre, en_comun, te_sigue FROM (
                   SELECT u.id, u.username, u.nombre,
@@ -93,6 +93,6 @@ class SeguidorRepository:
                   WHERE u.id <> :yo AND u.eliminado_en IS NULL AND {sin_bloqueo('u')}
                     AND NOT EXISTS (SELECT 1 FROM seguidores s WHERE s.seguidor_id = :yo AND s.seguido_id = u.id)
                 ) x
-                ORDER BY 3 * en_comun + 2 * te_sigue::int + ln(1 + populares) DESC, id
+                ORDER BY 3 * en_comun + 2 * te_sigue::int + 0.5 * ln(1 + populares) DESC, id
                 LIMIT :limit OFFSET :offset""",
             yo=yo, limit=limit, offset=offset)

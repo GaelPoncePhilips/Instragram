@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -33,3 +33,13 @@ class RefreshToken(Base):
     expira_en = Column(DateTime, nullable=False)
     revocado_en = Column(DateTime)
     creado_en = Column(DateTime, nullable=False, server_default=func.now())
+
+
+# EXTRA: similitud entre usuarios para el recomendador (la recalcula src/jobs/recalcular_afinidad.py)
+class AfinidadUsuario(Base):
+    __tablename__ = "afinidad_usuario"
+
+    usuario_id = Column(Integer, ForeignKey(U, ondelete="CASCADE"), primary_key=True)
+    similar_id = Column(Integer, ForeignKey(U, ondelete="CASCADE"), primary_key=True)
+    score = Column(Float, nullable=False)
+    calculado_en = Column(DateTime, nullable=False, server_default=func.now())

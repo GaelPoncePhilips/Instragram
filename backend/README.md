@@ -72,4 +72,6 @@ Flujo: **Router → Schema → DTO → Service → Repository → Model**. Los e
 Autenticación: `POST /api/auth/login` devuelve un access token (JWT, 15 min) y un refresh token (30 días);
 el resto de las rutas piden `Authorization: Bearer <access_token>` y `/api/auth/refresh` renueva los dos.
 
+Recomendador: correr `python -m src.jobs.recalcular_afinidad` periódicamente (ver `docs/RECOMENDACIONES.md`).
+
 Archivos: `POST /api/media` los guarda en `MEDIA_DIR` y se sirven en `/media/...`.

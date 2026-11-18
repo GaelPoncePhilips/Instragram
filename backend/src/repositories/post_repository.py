@@ -103,62 +103,6 @@ class PostRepository:
             nombre=nombre, yo=yo, limit=limit, offset=offset,
         )
 
-    def recomendados(
-        self, yo: int, tipo: str | None, sin_reels: bool, incluir_seguidos: bool, limit: int, offset: int
-    ) -> list[dict]:
-        """Híbrido social + hashtags + popularidad con decaimiento temporal (docs/RECOMENDACIONES.md)."""
-        visible = puede_ver("u") if incluir_seguidos else f"(NOT u.es_privada AND {sin_bloqueo('u')})"
-        return self._filas(
-            f"""
-            WITH afinidad AS (
-                SELECT hp.hashtag_id, count(*)::float AS peso
-                FROM likes l JOIN hashtags_post hp ON hp.post_id = l.post_id
-                WHERE l.usuario_id = :yo AND l.fecha > LOCALTIMESTAMP - INTERVAL '30 days'
-                GROUP BY hp.hashtag_id
-            ),
-            candidatos AS (
-                SELECT p.id, p.usuario_id, p.fecha_publicacion,
-                    (SELECT count(*) FROM likes l JOIN seguidores s
-                       ON s.seguido_id = l.usuario_id AND s.seguidor_id = :yo AND s.estado = 'aceptado'
-                     WHERE l.post_id = p.id)::float AS social,
-                    (SELECT coalesce(sum(a.peso), 0) FROM hashtags_post hp JOIN afinidad a ON a.hashtag_id = hp.hashtag_id
-                     WHERE hp.post_id = p.id)::float AS contenido,
-                    ((SELECT count(*) FROM likes l WHERE l.post_id = p.id AND l.fecha > LOCALTIMESTAMP - INTERVAL '72 hours')
-                     + 2 * (SELECT count(*) FROM comentario c WHERE c.post_id = p.id AND c.fecha > LOCALTIMESTAMP - INTERVAL '72 hours')
-                    )::float AS popularidad
-                FROM post p JOIN usuario u ON u.id = p.usuario_id AND u.eliminado_en IS NULL
-                WHERE p.usuario_id <> :yo
-                  AND p.fecha_publicacion > LOCALTIMESTAMP - INTERVAL '7 days'
-                  AND {visible}
-                  AND (:incluir_seguidos OR NOT EXISTS (
-                        SELECT 1 FROM seguidores s WHERE s.seguidor_id = :yo AND s.seguido_id = u.id))
-                  AND NOT EXISTS (SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.usuario_id = :yo)
-                  AND (CAST(:tipo AS varchar) IS NULL OR p.tipo = :tipo)
-                  AND (NOT :sin_reels OR p.tipo = 'foto')
-            ),
-            puntuados AS (
-                SELECT c.*,
-                    (0.40 * social / greatest(max(social) OVER (), 1)
-                   + 0.35 * contenido / greatest(max(contenido) OVER (), 1)
-                   + 0.25 * popularidad / greatest(max(popularidad) OVER (), 1))
-                   / power(extract(epoch FROM LOCALTIMESTAMP - fecha_publicacion) / 3600 + 2, 1.2) AS score
-                FROM candidatos c
-            ),
-            diversos AS (
-                SELECT pu.*, row_number() OVER (PARTITION BY usuario_id ORDER BY score DESC, id DESC) AS n
-                FROM puntuados pu
-            )
-            SELECT {POST_COLUMNAS},
-                CASE WHEN d.social > 0 THEN 'le gusta a cuentas que seguís'
-                     WHEN d.contenido > 0 THEN 'por hashtags que te gustan'
-                     ELSE 'popular' END AS motivo
-            FROM diversos d JOIN post p ON p.id = d.id JOIN usuario u ON u.id = p.usuario_id AND u.eliminado_en IS NULL
-            WHERE d.n <= 2
-            ORDER BY d.score DESC, p.fecha_publicacion DESC, p.id DESC
-            LIMIT :limit OFFSET :offset""",
-            yo=yo, tipo=tipo, sin_reels=sin_reels, incluir_seguidos=incluir_seguidos, limit=limit, offset=offset,
-        )
-
     # ---------- likes (HU5)
     def dar_like(self, usuario_id: int, post: Post) -> None:
         nuevo = self.db.execute(

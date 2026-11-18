@@ -74,10 +74,11 @@ Un reel es un `Post` con `tipo = "reel"`: comparte likes, comentarios, hashtags,
 
 | Método | Ruta | Quién | Descripción |
 |---|---|---|---|
-| GET | `/usuarios/{id}/feed` | dueño | Posts de seguidos aceptados, fecha desc. Incluye autor, likes, comentarios, `me_gusta`. Si `reels_desactivados`, excluye reels. |
-| GET | `/usuarios/{id}/reels/feed` | dueño | Reels recomendados. 403 si `reels_desactivados`. |
+| GET | `/usuarios/{id}/feed?modo=cronologico` | dueño | (HU6, default) Posts de seguidos aceptados, fecha desc. Incluye autor, likes, comentarios, `me_gusta`. Si `reels_desactivados`, excluye reels. |
+| GET | `/usuarios/{id}/feed?modo=recomendado` | dueño | Intercala amigo → interés → cercano → celebridad, con `motivo` (ver `RECOMENDACIONES.md`) |
+| GET | `/usuarios/{id}/reels/feed` | dueño | Reels con la misma mezcla intercalada. 403 si `reels_desactivados`. |
 | GET | `/usuarios/{id}/explorar` | dueño | Posts recomendados de cuentas públicas que no sigo (ver `RECOMENDACIONES.md`) |
-| GET | `/usuarios/{id}/sugerencias` | dueño | Cuentas sugeridas para seguir |
+| GET | `/usuarios/{id}/sugerencias` | dueño | Cuentas sugeridas: grafo social + un poco de popularidad |
 
 ## Stories — HU7, HU8, HU9
 

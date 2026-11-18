@@ -106,6 +106,7 @@ Reglas del service: una conversación 1 a 1 por par; si el destinatario no sigue
 | `Usuario.eliminado_en` | Borrado lógico. Con valor, la cuenta no puede loguearse y desaparece de todas las consultas (perfil, posts, listas, contadores, likes, comentarios, búsqueda, notificaciones). |
 | `Post.fecha_edicion`, `Comentario.fecha_edicion` | Última edición. |
 | `Notificacion` | Destinatario, `actor`, `tipo` y referencia opcional a post / comentario / álbum; `leida`. |
+| `afinidad_usuario` | Similitud entre usuarios para el recomendador; la recalcula `python -m src.jobs.recalcular_afinidad`. |
 | `refresh_token` | sha256 del token, `familia` (cadena de rotación), `expira_en`, `revocado_en`. |
 
 ## Reglas que no están en la base (van en los services)

@@ -11,6 +11,7 @@ from src.middlewares.auth_middleware import get_current_user, verificar_dueno
 from src.routers.deps import Pagina
 from src.schemas.post_schema import CreateComentarioSchema, CreatePostSchema, UpdatePostSchema
 from src.services.post_service import PostService
+from src.services.recomendacion_service import RecomendacionService
 
 router = APIRouter(tags=["posts"])
 
@@ -50,9 +51,12 @@ def listar_reels_de_usuario(usuario_id: int, pag: Pagina = Depends(),
 
 # ---------- Feed y recomendaciones (HU6, EXTRA)
 @router.get("/usuarios/{usuario_id}/feed", response_model=list[PostDetalleDTO])
-def feed(usuario_id: int, pag: Pagina = Depends(), db: Session = Depends(get_db),
-         actual: Usuario = Depends(get_current_user)):
+def feed(usuario_id: int, modo: Literal["cronologico", "recomendado"] = "cronologico", pag: Pagina = Depends(),
+         db: Session = Depends(get_db), actual: Usuario = Depends(get_current_user)):
+    """cronologico (HU6): seguidos por fecha. recomendado: intercala amigos, intereses, cercanos y celebridades."""
     verificar_dueno(usuario_id, actual)
+    if modo == "recomendado":
+        return RecomendacionService(db).feed(actual, pag.limit, pag.offset)
     return PostService(db).feed(actual, pag.limit, pag.offset)
 
 
@@ -60,14 +64,14 @@ def feed(usuario_id: int, pag: Pagina = Depends(), db: Session = Depends(get_db)
 def explorar(usuario_id: int, pag: Pagina = Depends(), db: Session = Depends(get_db),
              actual: Usuario = Depends(get_current_user)):
     verificar_dueno(usuario_id, actual)
-    return PostService(db).explorar(actual, pag.limit, pag.offset)
+    return RecomendacionService(db).explorar(actual, pag.limit, pag.offset)
 
 
 @router.get("/usuarios/{usuario_id}/reels/feed", response_model=list[PostDetalleDTO])
 def feed_reels(usuario_id: int, pag: Pagina = Depends(), db: Session = Depends(get_db),
                actual: Usuario = Depends(get_current_user)):
     verificar_dueno(usuario_id, actual)
-    return PostService(db).feed_reels(actual, pag.limit, pag.offset)
+    return RecomendacionService(db).reels(actual, pag.limit, pag.offset)
 
 
 # ---------- Likes (HU5)
