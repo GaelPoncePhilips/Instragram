@@ -1,0 +1,455 @@
+@import 'tailwindcss';
+
+/*
+ * Tokens M3 → Tailwind. Los colores (--md-sys-color-*) los genera theme/color.ts con HCT;
+ * los springs (--md-motion-*) los genera theme/motion.ts. Aquí solo se mapean.
+ */
+@theme inline {
+  --color-primary: var(--md-sys-color-primary);
+  --color-on-primary: var(--md-sys-color-on-primary);
+  --color-primary-container: var(--md-sys-color-primary-container);
+  --color-on-primary-container: var(--md-sys-color-on-primary-container);
+  --color-secondary: var(--md-sys-color-secondary);
+  --color-secondary-container: var(--md-sys-color-secondary-container);
+  --color-on-secondary-container: var(--md-sys-color-on-secondary-container);
+  --color-tertiary: var(--md-sys-color-tertiary);
+  --color-tertiary-container: var(--md-sys-color-tertiary-container);
+  --color-on-tertiary-container: var(--md-sys-color-on-tertiary-container);
+  --color-surface: var(--md-sys-color-surface);
+  --color-surface-dim: var(--md-sys-color-surface-dim);
+  --color-on-surface: var(--md-sys-color-on-surface);
+  --color-on-surface-variant: var(--md-sys-color-on-surface-variant);
+  --color-surface-container-lowest: var(--md-sys-color-surface-container-lowest);
+  --color-surface-container-low: var(--md-sys-color-surface-container-low);
+  --color-surface-container: var(--md-sys-color-surface-container);
+  --color-surface-container-high: var(--md-sys-color-surface-container-high);
+  --color-surface-container-highest: var(--md-sys-color-surface-container-highest);
+  --color-outline: var(--md-sys-color-outline);
+  --color-outline-variant: var(--md-sys-color-outline-variant);
+  --color-error: var(--md-sys-color-error);
+  --color-on-error: var(--md-sys-color-on-error);
+  --color-error-container: var(--md-sys-color-error-container);
+  --color-on-error-container: var(--md-sys-color-on-error-container);
+  --color-inverse-surface: var(--md-sys-color-inverse-surface);
+  --color-inverse-on-surface: var(--md-sys-color-inverse-on-surface);
+  --color-inverse-primary: var(--md-sys-color-inverse-primary);
+  --color-scrim: var(--md-sys-color-scrim);
+  --color-amigos: var(--keepsy-amigos);
+
+  /* Escala de esquinas M3 (Shape.md) */
+  --radius-none: 0px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-lg-inc: 20px;
+  --radius-xl: 28px;
+  --radius-xl-inc: 32px;
+  --radius-2xl: 48px;
+  --radius-full: 9999px;
+
+  --font-sans: 'Roboto Flex', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+:root {
+  --keepsy-amigos: #1faf5a;
+  --nav-h: 50px;
+  --feed-w: 470px;
+  --grid-ratio: 1 / 1;
+  --grid-gap: 3px;
+  --sidebar-w: 244px;
+  --sidebar-w-collapsed: 72px;
+  --panel-w: 397px;
+}
+:root[data-tema='oscuro'] {
+  --keepsy-amigos: #4ade80;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='claro']) {
+    --keepsy-amigos: #4ade80;
+  }
+}
+@media (max-width: 767px) {
+  :root {
+    --grid-gap: 2px;
+  }
+}
+
+html,
+body {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--font-sans);
+  font-optical-sizing: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+html {
+  /* Sin "rebote" elástico arriba/abajo: en móvil arrastraba las barras fijas. */
+  overscroll-behavior-y: none;
+}
+body {
+  margin: 0;
+  /* svh = alto con la barra del navegador visible: no cambia mientras se esconde al hacer scroll
+     (dvh sí, y forzaba un re-layout por cuadro que hacía saltar la barra inferior). */
+  min-height: 100svh;
+  /* clip en vez de hidden: hidden convierte al body en contenedor de scroll y en iOS/Android
+     las barras position: fixed tiemblan o se desplazan durante el scroll. */
+  overflow-x: clip;
+  overscroll-behavior-y: none;
+}
+/* Barras fijas en su propia capa de composición: no se repintan con el contenido al scrollear. */
+.barra-fija {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+button {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Tipografía M3 (Roboto Flex) */
+@utility type-display-s {
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 400;
+}
+@utility type-headline-l {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 400;
+}
+@utility type-headline-m {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 400;
+}
+@utility type-headline-s {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 400;
+}
+@utility type-title-l {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 400;
+}
+@utility type-title-m {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+}
+@utility type-title-s {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+@utility type-body-l {
+  font-size: 16px;
+  line-height: 24px;
+}
+@utility type-body-m {
+  font-size: 14px;
+  line-height: 20px;
+}
+@utility type-body-s {
+  font-size: 12px;
+  line-height: 16px;
+}
+@utility type-label-l {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+@utility type-label-m {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+@utility type-label-s {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+}
+/* Estilos enfáticos (M3 Expressive): más peso y ancho variable */
+@utility emphasized {
+  font-weight: 700;
+  font-variation-settings: 'wdth' 112;
+}
+@utility wordmark {
+  font-weight: 800;
+  font-variation-settings: 'wdth' 125, 'opsz' 144;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Íconos: Material Symbols Rounded, solo cambia FILL */
+.icon {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+}
+.icon[data-fill='true'] {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ---------- Movimiento (springs → linear()) */
+.spring-spatial-fast {
+  transition-timing-function: var(--md-motion-spatial-fast-easing, ease-out);
+  transition-duration: var(--md-motion-spatial-fast-duration, 200ms);
+}
+.spring-spatial {
+  transition-timing-function: var(--md-motion-spatial-default-easing, ease-out);
+  transition-duration: var(--md-motion-spatial-default-duration, 350ms);
+}
+.spring-effects {
+  transition-timing-function: var(--md-motion-effects-fast-easing, ease-out);
+  transition-duration: var(--md-motion-effects-fast-duration, 150ms);
+}
+
+@layer components {
+/* Morph de forma: redondeado → cuadrado al presionar o seleccionar */
+.morph {
+  transition-property: border-radius, background-color, color, transform;
+  transition-timing-function: var(--md-motion-spatial-fast-easing, ease-out);
+  transition-duration: var(--md-motion-spatial-fast-duration, 200ms);
+  border-radius: 9999px;
+}
+.morph:active:not(:disabled),
+.morph[data-selected='true'] {
+  border-radius: 12px;
+}
+.morph-icon {
+  transition-property: border-radius, background-color, color;
+  transition-timing-function: var(--md-motion-spatial-fast-easing, ease-out);
+  transition-duration: var(--md-motion-spatial-fast-duration, 200ms);
+  border-radius: 9999px;
+}
+.morph-icon:active:not(:disabled) {
+  border-radius: 16px;
+}
+
+}
+
+@layer components {
+/* State layers (M3): hover 8 %, focus/pressed 10 % del color del contenido */
+.state {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.state::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity var(--md-motion-effects-fast-duration, 150ms)
+    var(--md-motion-effects-fast-easing, ease-out);
+  border-radius: inherit;
+}
+@media (hover: hover) {
+  .state:hover::before {
+    opacity: 0.08;
+  }
+}
+.state:focus-visible::before,
+.state:active::before {
+  opacity: 0.1;
+}
+.state:disabled::before {
+  opacity: 0;
+}
+.ripple-ink {
+  position: absolute;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.14;
+  transform: scale(0);
+  pointer-events: none;
+  z-index: -1;
+  animation: ripple 450ms var(--md-motion-effects-slow-easing, ease-out) forwards;
+}
+@keyframes ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+}
+
+/* Corazón del doble tap */
+@keyframes heart-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+.heart-pop {
+  animation: heart-pop 900ms var(--md-motion-bounce-easing, ease-out) forwards;
+}
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pop {
+  animation: pop 400ms var(--md-motion-bounce-easing, ease-out);
+}
+
+/* Entrada de sheets y diálogos */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes slide-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes slide-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes scale-in {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.anim-slide-up {
+  animation: slide-up var(--md-motion-spatial-default-duration, 350ms)
+    var(--md-motion-spatial-default-easing, ease-out);
+}
+.anim-slide-left {
+  animation: slide-left var(--md-motion-spatial-default-duration, 350ms)
+    var(--md-motion-spatial-default-easing, ease-out);
+}
+.anim-slide-right {
+  animation: slide-right var(--md-motion-spatial-default-duration, 350ms)
+    var(--md-motion-spatial-default-easing, ease-out);
+}
+.anim-scale-in {
+  animation: scale-in var(--md-motion-spatial-default-duration, 350ms)
+    var(--md-motion-spatial-default-easing, ease-out);
+}
+.anim-fade-in {
+  animation: fade-in var(--md-motion-effects-default-duration, 200ms) ease-out;
+}
+.anim-fab-item {
+  animation: scale-in var(--md-motion-bounce-duration, 400ms) var(--md-motion-bounce-easing, ease-out) both;
+}
+
+/* Progreso de stories */
+@keyframes story-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 100ms !important;
+    animation-timing-function: ease-out !important;
+    transition-duration: 100ms !important;
+    transition-timing-function: ease-out !important;
+  }
+  .anim-slide-up,
+  .anim-slide-left,
+  .anim-slide-right,
+  .anim-scale-in,
+  .anim-fab-item {
+    animation-name: fade-in !important;
+  }
+  .heart-pop {
+    animation-name: fade-in !important;
+  }
+}
+
+@layer components {
+/* Button group conectado (M3 Expressive): esquinas internas de 8px, externas redondas */
+.btn-group > .morph {
+  border-radius: 8px;
+}
+.btn-group > .morph:first-child {
+  border-radius: 9999px 8px 8px 9999px;
+}
+.btn-group > .morph:last-child {
+  border-radius: 8px 9999px 9999px 8px;
+}
+.btn-group > .morph:only-child {
+  border-radius: 9999px;
+}
+.btn-group > .morph:active:not(:disabled),
+.btn-group > .morph[data-selected='true'] {
+  border-radius: 12px;
+}
+}

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "keepsy-frontend",
+      "runtimeExecutable": "C:\\Users\\User\\.bun\\bin\\bun.exe",
+      "runtimeArgs": ["run", "--cwd", "frontend", "dev", "--port", "5173", "--strictPort"],
+      "port": 5173
+    },
+    {
+      "name": "keepsy-pwa",
+      "runtimeExecutable": "C:\\Users\\User\\.bun\\bin\\bun.exe",
+      "runtimeArgs": ["run", "--cwd", "frontend", "preview", "--port", "4173", "--strictPort"],
+      "port": 4173
+    }
+  ]
+}
